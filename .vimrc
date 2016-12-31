@@ -336,4 +336,4 @@ function! InitializeDirectories()
 endfunction
 call InitializeDirectories()
 
-colorscheme molokai
+"colorscheme molokai
