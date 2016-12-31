@@ -1,4 +1,4 @@
-﻿" vim config
+﻿" vim configuration
 " Last Change: 2016 Dec 30
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
@@ -14,7 +14,6 @@ silent function! IsWindows()
     return  (has('win32') || has('win64'))
 endfunction
 
-
 set nocompatible
 set background=dark
 
@@ -22,8 +21,6 @@ if !IsWindows()
     set shell=/bin/sh
 endif
 
-
-" Windows平台配置
 if IsWindows()
     set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after
     set noerrorbells visualbell t_vb=
@@ -53,8 +50,6 @@ if IsWindows()
     endif
 endif
 
-
-
 " 设置 bundle
 filetype off
 set rtp+=~/.vim/bundle/vundle
@@ -65,8 +60,7 @@ function! UnBundle(arg, ...)
     call filter(g:vundle#bundles, 'v:val["name_spec"] != "' . a:arg . '"')
 endfunction
 
-com! -nargs=+         UnBundle
-\ call UnBundle(<args>)
+com! -nargs=+ UnBundle call UnBundle(<args>)
 
 " -----------------------------------------------------------------------------
 Bundle 'gmarik/vundle'
@@ -86,6 +80,10 @@ Bundle 'vim-scripts/Visual-Mark'
 if executable('ctags')
     Bundle 'majutsushi/tagbar'
 endif
+
+Bundle 'vim-airline/vim-airline'
+Bundle 'vim-airline/vim-airline-themes'
+" -----------------------------------------------------------------------------
 
 filetype plugin indent on
 syntax on
@@ -174,7 +172,6 @@ set scrolloff=3
 set foldenable
 set list
 set listchars=tab:›\ ,trail:•,extends:#,nbsp:. 
-
 set nowrap
 set autoindent
 set shiftwidth=4
@@ -271,6 +268,12 @@ if isdirectory(expand("~/.vim/bundle/vim-fugitive/"))
     nnoremap <silent> <leader>gg :SignifyToggle<CR>
 endif
 
+if isdirectory(expand("~/.vim/bundle/vim-airline-themes/"))
+    let g:airline_theme = 'solarized'
+    let g:airline_left_sep='›'
+    let g:airline_right_sep='‹'
+endif
+
 if has('gui_running')
     set guioptions-=T
     set lines=40
@@ -319,7 +322,6 @@ function! InitializeDirectories()
     endfor
 endfunction
 call InitializeDirectories()
-
 
 if filereadable(expand("~/.vim/bundle/vim-colors/colors/molokai.vim"))
     colorscheme molokai
