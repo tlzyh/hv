@@ -1,4 +1,4 @@
-" vim config
+ï»¿" vim config
 " Last Change: 2016 Dec 30
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
@@ -23,16 +23,16 @@ if !IsWindows()
 endif
 
 
-" WindowsÆ½Ì¨ÅäÖÃ
+" Windowså¹³å°é…ç½®
 if IsWindows()
     set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after
     set noerrorbells visualbell t_vb=
     if has('autocmd')
-        " ¹Ø±ÕÏìÁå
+        " å…³é—­å“é“ƒ
         autocmd GUIEnter * set visualbell t_vb=
     endif
 
-    " Òş²Ø²Ëµ¥¹¤¾ßÀ¸¡£¿ª¹ØÎªF3
+    " éšè—èœå•å·¥å…·æ ã€‚å¼€å…³ä¸ºF3
     set guioptions-=m
     set guioptions-=T
     map <silent> <F3> :if &guioptions =~# 'T' <Bar>
@@ -55,7 +55,7 @@ endif
 
 
 
-" ÉèÖÃ bundle
+" è®¾ç½® bundle
 filetype off
 set rtp+=~/.vim/bundle/vundle
 call vundle#rc()
@@ -80,10 +80,12 @@ Bundle 'xolox/vim-misc'
 Bundle 'xolox/vim-shell'
 Bundle 'xolox/vim-lua-ftplugin'
 
-Bundle 'godlygeek/tabular'
 Bundle 'scrooloose/nerdtree'
 
 Bundle 'vim-scripts/Visual-Mark'
+if executable('ctags')
+    Bundle 'majutsushi/tagbar'
+endif
 
 filetype plugin indent on
 syntax on
@@ -99,7 +101,7 @@ if has('clipboard')
     endif
 endif
 
-" ´ò¿ªBuff£¬µ±Ç°Ä¿Â¼ÇĞ»»µ½µ±Ç°ÎÄ¼şËùÔÚÄ¿Â¼
+" æ‰“å¼€Buffï¼Œå½“å‰ç›®å½•åˆ‡æ¢åˆ°å½“å‰æ–‡ä»¶æ‰€åœ¨ç›®å½•
 autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
 
 set shortmess+=filmnrxoOtT
@@ -112,7 +114,7 @@ set iskeyword-=.
 set iskeyword-=#
 set iskeyword-=-
 
-" ÇĞ»»bufferµÄÊ±ºò£¬¹â±ê»Øµ½Ö®Ç°µÄÎ»ÖÃ
+" åˆ‡æ¢bufferçš„æ—¶å€™ï¼Œå…‰æ ‡å›åˆ°ä¹‹å‰çš„ä½ç½®
 function! ResCur()
     if line("'\"") <= line("$")
         silent! normal! g`"
@@ -171,6 +173,7 @@ set scrolljump=5
 set scrolloff=3
 set foldenable
 set list
+set listchars=tab:â€º\ ,trail:â€¢,extends:#,nbsp:. 
 
 set nowrap
 set autoindent
@@ -218,25 +221,6 @@ if isdirectory(expand("~/.vim/bundle/nerdtree"))
     let NERDTreeMouseMode=2
     let NERDTreeShowHidden=1
     let NERDTreeKeepTreeInNewTab=1
-endif
-
-if isdirectory(expand("~/.vim/bundle/tabular"))
-    nmap <Leader>a& :Tabularize /&<CR>
-    vmap <Leader>a& :Tabularize /&<CR>
-    nmap <Leader>a= :Tabularize /^[^=]*\zs=<CR>
-    vmap <Leader>a= :Tabularize /^[^=]*\zs=<CR>
-    nmap <Leader>a=> :Tabularize /=><CR>
-    vmap <Leader>a=> :Tabularize /=><CR>
-    nmap <Leader>a: :Tabularize /:<CR>
-    vmap <Leader>a: :Tabularize /:<CR>
-    nmap <Leader>a:: :Tabularize /:\zs<CR>
-    vmap <Leader>a:: :Tabularize /:\zs<CR>
-    nmap <Leader>a, :Tabularize /,<CR>
-    vmap <Leader>a, :Tabularize /,<CR>
-    nmap <Leader>a,, :Tabularize /,\zs<CR>
-    vmap <Leader>a,, :Tabularize /,\zs<CR>
-    nmap <Leader>a<Bar> :Tabularize /<Bar><CR>
-    vmap <Leader>a<Bar> :Tabularize /<Bar><CR>
 endif
 
 if isdirectory(expand("~/.vim/bundle/ctrlp.vim/"))
@@ -336,4 +320,7 @@ function! InitializeDirectories()
 endfunction
 call InitializeDirectories()
 
-"colorscheme molokai
+
+if filereadable(expand("~/.vim/bundle/vim-colors/colors/molokai.vim"))
+    colorscheme molokai
+endif
