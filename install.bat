@@ -2,7 +2,7 @@ REM hv installer on Windows
 REM Last Change: 2016 Dec 30
 REM Author: YangHui <tlz.yh@outlook.com>
 REM Maintainer: YangHui <tlz.yh@outlook.com>
-REM License: his file is placed in the public domain.
+REM License: This file is placed in the public domain.
 
 @if not exist "%HOME%" @set HOME=%HOMEDRIVE%%HOMEPATH%
 @if not exist "%HOME%" @set HOME=%USERPROFILE%
