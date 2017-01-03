@@ -1,4 +1,4 @@
-﻿" vim configuration
+" vim configuration
 " Last Change: 2016 Dec 30
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
