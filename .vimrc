@@ -84,6 +84,7 @@ endif
 Bundle 'vim-airline/vim-airline'
 Bundle 'vim-airline/vim-airline-themes'
 Bundle 'tpope/vim-fugitive'
+Bundle 'vim-scripts/vcscommand'
 " -----------------------------------------------------------------------------
 
 filetype plugin indent on
