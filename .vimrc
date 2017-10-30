@@ -88,10 +88,6 @@ endif
 " -----------------------------------------------------------------------------
 
 " -------------------------------- 设置 vim-plug ----------------------
-filetype off
-set rtp+=~/.vim/plugin/vim-plug
-call plug#load()
-
 call plug#begin('~/.vim/plugin')
 Plug 'gmarik/vundle'
 Plug 'spf13/vim-colors'
