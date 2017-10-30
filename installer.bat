@@ -28,7 +28,7 @@ IF NOT EXIST "%APP_PATH%\.vim\plugin" (
 )
 
 IF NOT EXIST "%HOME%/.vim/plugin/vim-plug" (
-    call git clone https://github.com/gmarik/vundle.git "%HOME%/.vim/plugin/vim-plug"
+    call git clone https://github.com/junegunn/vim-plug.git "%HOME%/.vim/plugin/vim-plug"
 ) ELSE (
   call cd "%HOME%/.vim/plugin/vim-plug"
   call git pull

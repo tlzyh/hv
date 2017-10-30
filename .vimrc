@@ -91,7 +91,6 @@ endif
 call plug#begin('~/.vim/plugin')
 Plug 'gmarik/vundle'
 Plug 'spf13/vim-colors'
-Plug 'tlzyh/vim-youdao-translater'
 
 Plug 'kien/ctrlp.vim'
 Plug 'tacahiroy/ctrlp-funky'
