@@ -36,8 +36,8 @@ IF NOT EXIST "%HOME%/.vim/plugin/vim-plug" (
 )
 
 REM copy plug.vim to autoload directory
-IF NOT EXIST "%APP_PATH%\vimfiles\autoload" (
-    call mkdir "%APP_PATH%\vimfiles\autoload"
+IF NOT EXIST "%HOME%\vimfiles\autoload" (
+    call mkdir "%HOME%\vimfiles\autoload"
 )
 xcopy /Y /Q "%HOME%\.vim\plug\vim-plug\plug.vim" "%HOME%\vimfiles\autoload"
 
