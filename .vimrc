@@ -51,41 +51,72 @@ if IsWindows()
 endif
 
 " 设置 bundle
-filetype off
-set rtp+=~/.vim/bundle/vundle
-call vundle#rc()
-
-function! UnBundle(arg, ...)
-    let bundle = vundle#config#init_bundle(a:arg, a:000)
-    call filter(g:vundle#bundles, 'v:val["name_spec"] != "' . a:arg . '"')
-endfunction
-
-com! -nargs=+ UnBundle call UnBundle(<args>)
+" filetype off
+" set rtp+=~/.vim/bundle/vundle
+" call vundle#rc()
+" 
+" function! UnBundle(arg, ...)
+"     let bundle = vundle#config#init_bundle(a:arg, a:000)
+"     call filter(g:vundle#bundles, 'v:val["name_spec"] != "' . a:arg . '"')
+" endfunction
+" 
+" com! -nargs=+ UnBundle call UnBundle(<args>)
 
 " -----------------------------------------------------------------------------
-Bundle 'gmarik/vundle'
-Bundle 'spf13/vim-colors'
-Bundle 'tlzyh/vim-youdao-translater'
+" Bundle 'gmarik/vundle'
+" Bundle 'spf13/vim-colors'
+" Bundle 'tlzyh/vim-youdao-translater'
+" 
+" Bundle 'kien/ctrlp.vim'
+" Bundle 'tacahiroy/ctrlp-funky'
+" 
+" Bundle 'xolox/vim-misc'
+" Bundle 'xolox/vim-shell'
+" Bundle 'xolox/vim-lua-ftplugin'
+" 
+" Bundle 'scrooloose/nerdtree'
+" 
+" Bundle 'vim-scripts/Visual-Mark'
+" if executable('ctags')
+"     Bundle 'majutsushi/tagbar'
+" endif
+" 
+" Bundle 'vim-airline/vim-airline'
+" Bundle 'vim-airline/vim-airline-themes'
+" Bundle 'tpope/vim-fugitive'
+" Bundle 'vim-scripts/vcscommand.vim'
+" -----------------------------------------------------------------------------
 
-Bundle 'kien/ctrlp.vim'
-Bundle 'tacahiroy/ctrlp-funky'
+" -------------------------------- 设置 vim-plug ----------------------
+filetype off
+set rtp+=~/.vim/plugin/vim-plug
 
-Bundle 'xolox/vim-misc'
-Bundle 'xolox/vim-shell'
-Bundle 'xolox/vim-lua-ftplugin'
+call plug#begin('~/.vim/plugin')
+Plug 'gmarik/vundle'
+Plug 'spf13/vim-colors'
+Plug 'tlzyh/vim-youdao-translater'
 
-Bundle 'scrooloose/nerdtree'
+Plug 'kien/ctrlp.vim'
+Plug 'tacahiroy/ctrlp-funky'
 
-Bundle 'vim-scripts/Visual-Mark'
+Plug 'xolox/vim-misc'
+Plug 'xolox/vim-shell'
+Plug 'xolox/vim-lua-ftplugin'
+
+Plug 'scrooloose/nerdtree'
+
+Plug 'vim-scripts/Visual-Mark'
 if executable('ctags')
-    Bundle 'majutsushi/tagbar'
+    Plug 'majutsushi/tagbar'
 endif
 
-Bundle 'vim-airline/vim-airline'
-Bundle 'vim-airline/vim-airline-themes'
-Bundle 'tpope/vim-fugitive'
-Bundle 'vim-scripts/vcscommand.vim'
-" -----------------------------------------------------------------------------
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'tpope/vim-fugitive'
+Plug 'vim-scripts/vcscommand.vim'
+call plug#end()
+
+" -------------------------------- End vim-plug ----------------------
 
 filetype plugin indent on
 syntax on

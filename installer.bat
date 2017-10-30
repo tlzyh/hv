@@ -1,5 +1,5 @@
 REM hv installer on Windows
-REM Last Change: 2016 Dec 30
+REM Last Change: 2017/10/30
 REM Author: YangHui <tlz.yh@outlook.com>
 REM Maintainer: YangHui <tlz.yh@outlook.com>
 REM License: This file is placed in the public domain.
@@ -23,17 +23,16 @@ call mklink "%HOME%\.vimrc" "%APP_PATH%\.vimrc"
 call mklink "%HOME%\_vimrc" "%APP_PATH%\.vimrc"
 call mklink /J "%HOME%\.vim" "%APP_PATH%\.vim"
 
-IF NOT EXIST "%APP_PATH%\.vim\bundle" (
-    call mkdir "%APP_PATH%\.vim\bundle"
+IF NOT EXIST "%APP_PATH%\.vim\plugin" (
+    call mkdir "%APP_PATH%\.vim\plugin"
 )
 
-IF NOT EXIST "%HOME%/.vim/bundle/vundle" (
-    call git clone https://github.com/gmarik/vundle.git "%HOME%/.vim/bundle/vundle"
+IF NOT EXIST "%HOME%/.vim/plugin/vim-plug" (
+    call git clone https://github.com/gmarik/vundle.git "%HOME%/.vim/plugin/vim-plug"
 ) ELSE (
-  call cd "%HOME%/.vim/bundle/vundle"
+  call cd "%HOME%/.vim/plugin/vim-plug"
   call git pull
   call cd %HOME%
 )
 
-call vim -u "%APP_PATH%/.vimrc" +BundleInstall! +BundleClean +qall
-
+call vim -u "%APP_PATH%/.vimrc" +PlugInstall +qall
