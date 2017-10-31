@@ -89,11 +89,7 @@ endif
 
 " -------------------------------- 设置 vim-plug ----------------------
 call plug#begin('~/.vim/plugin')
-Plug 'gmarik/vundle'
 Plug 'spf13/vim-colors'
-
-Plug 'kien/ctrlp.vim'
-Plug 'tacahiroy/ctrlp-funky'
 
 Plug 'xolox/vim-misc'
 Plug 'xolox/vim-shell'
