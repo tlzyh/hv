@@ -22,7 +22,7 @@ if !IsWindows()
 endif
 
 if IsWindows()
-    set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after
+    set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
     set noerrorbells visualbell t_vb=
     if has('autocmd')
         " 关闭响铃
@@ -229,13 +229,13 @@ nmap <leader>f8 :set foldlevel=8<CR>
 nmap <leader>f9 :set foldlevel=9<CR>
 
 
-if isdirectory(expand("~/.vim/bundle/vim-youdao-translater"))
+if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
     nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
     noremap <leader>yd :Yde<CR>
 end
 
-if isdirectory(expand("~/.vim/bundle/nerdtree"))
+if isdirectory(expand("~/.vim/plugin/nerdtree"))
     map <C-e> <plug>NERDTreeTabsToggle<CR>
     map <leader>e :NERDTreeFind<CR>
     nmap <leader>nt :NERDTreeFind<CR>
@@ -249,7 +249,7 @@ if isdirectory(expand("~/.vim/bundle/nerdtree"))
     let NERDTreeKeepTreeInNewTab=1
 endif
 
-if isdirectory(expand("~/.vim/bundle/ctrlp.vim/"))
+if isdirectory(expand("~/.vim/plugin/ctrlp.vim/"))
     let g:ctrlp_working_path_mode = 'ra'
     nnoremap <silent> <D-t> :CtrlP<CR>
     nnoremap <silent> <D-r> :CtrlPMRU<CR>
@@ -272,18 +272,18 @@ if isdirectory(expand("~/.vim/bundle/ctrlp.vim/"))
                 \ 'fallback': s:ctrlp_fallback
                 \ }
 
-    if isdirectory(expand("~/.vim/bundle/ctrlp-funky/"))
+    if isdirectory(expand("~/.vim/plugin/ctrlp-funky/"))
         let g:ctrlp_extensions = ['funky']
         nnoremap <Leader>fu :CtrlPFunky<Cr>
     endif
 endif
 
 
-if isdirectory(expand("~/.vim/bundle/tagbar/"))
+if isdirectory(expand("~/.vim/plugin/tagbar/"))
     nnoremap <silent> <leader>tt :TagbarToggle<CR>
 endif
 
-if isdirectory(expand("~/.vim/bundle/vim-fugitive/"))
+if isdirectory(expand("~/.vim/plugin/vim-fugitive/"))
     nnoremap <silent> <leader>gs :Gstatus<CR>
     nnoremap <silent> <leader>gd :Gdiff<CR>
     nnoremap <silent> <leader>gc :Gcommit<CR>
@@ -297,7 +297,7 @@ if isdirectory(expand("~/.vim/bundle/vim-fugitive/"))
     nnoremap <silent> <leader>gg :SignifyToggle<CR>
 endif
 
-if isdirectory(expand("~/.vim/bundle/vim-airline-themes/"))
+if isdirectory(expand("~/.vim/plugin/vim-airline-themes/"))
     let g:airline_theme = 'solarized'
     let g:airline_left_sep='›'
     let g:airline_right_sep='‹'
@@ -352,6 +352,6 @@ function! InitializeDirectories()
 endfunction
 call InitializeDirectories()
 
-if filereadable(expand("~/.vim/bundle/vim-colors/colors/molokai.vim"))
+if filereadable(expand("~/.vim/plugin/vim-colors/colors/molokai.vim"))
     colorscheme molokai
 endif
