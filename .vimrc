@@ -95,8 +95,8 @@ Plug 'xolox/vim-misc'
 Plug 'xolox/vim-shell'
 Plug 'xolox/vim-lua-ftplugin'
 
-" Plug 'scrooloose/nerdtree'
-" 
+Plug 'scrooloose/nerdtree'
+
 Plug 'vim-scripts/Visual-Mark'
 if executable('ctags')
     Plug 'majutsushi/tagbar'
