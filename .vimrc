@@ -95,17 +95,17 @@ Plug 'xolox/vim-misc'
 Plug 'xolox/vim-shell'
 Plug 'xolox/vim-lua-ftplugin'
 
-Plug 'scrooloose/nerdtree'
-
-Plug 'vim-scripts/Visual-Mark'
-if executable('ctags')
-    Plug 'majutsushi/tagbar'
-endif
-
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
-Plug 'tpope/vim-fugitive'
-Plug 'vim-scripts/vcscommand.vim'
+" Plug 'scrooloose/nerdtree'
+" 
+" Plug 'vim-scripts/Visual-Mark'
+" if executable('ctags')
+"     Plug 'majutsushi/tagbar'
+" endif
+" 
+" Plug 'vim-airline/vim-airline'
+" Plug 'vim-airline/vim-airline-themes'
+" Plug 'tpope/vim-fugitive'
+" Plug 'vim-scripts/vcscommand.vim'
 call plug#end()
 
 " -------------------------------- End vim-plug ----------------------
