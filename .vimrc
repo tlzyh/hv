@@ -5,28 +5,28 @@
 " License: his file is placed in the public domain.
 
 " 是否是mac平台
-silent function! is_osx()
+silent function! IsOSX()
     return has('macunix')
 endfunction
 
 " 是否是linux或者类linux平台
-silent function! is_linux()
+silent function! IsLinux()
     return has('unix') && !has('macunix') && !has('win32unix')
 endfunction
 
 " 是否是windows平台
-silent function! is_win()
+silent function! IsWindows()
     return  (has('win32') || has('win64'))
 endfunction
 
 set nocompatible
 set background=dark
 
-if !is_win()
+if !IsWindows()
     set shell=/bin/sh
 endif
 
-if is_win()
+if IsWindows()
     set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
     set noerrorbells visualbell t_vb=
     if has('autocmd')

@@ -29,10 +29,10 @@ if not exist "%APP_PATH%\.vim\plugin" (
     call mkdir "%APP_PATH%\.vim\plugin"
 )
 
-if not exist "%HOME%/.vim/plugin/vim-plug" (
-    call git clone https://github.com/junegunn/vim-plug.git "%HOME%/.vim/plugin/vim-plug"
+if not exist "%HOME%\.vim/plugin\vim-plug" (
+    call git clone https://github.com/junegunn/vim-plug.git "%HOME%\.vim\plugin\vim-plug"
 ) else (
-  call cd "%HOME%/.vim/plugin/vim-plug"
+  call cd "%HOME%\.vim\plugin\vim-plug"
   call git pull
   call cd %HOME%
 )
@@ -44,4 +44,4 @@ if not exist "%HOME%\.vim\vimfiles\autoload" (
 REM copy plug.vim to autoload directory
 xcopy /Y /Q "%HOME%\.vim\plugin\vim-plug\plug.vim" "%HOME%\.vim\vimfiles\autoload"
 
-call vim -u "%APP_PATH%/.vimrc" +PlugInstall
+call vim -u "%APP_PATH%\.vimrc" +PlugInstall
