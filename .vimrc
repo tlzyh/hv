@@ -55,6 +55,9 @@ call plug#begin('~/.vim/plugin')
 " color scheme
 Plug 'tlzyh/vim-colors'
 
+" 在线翻译
+Plug 'tlzyh/vim-youdao-translater'
+
 " Lua
 Plug 'xolox/vim-misc'
 Plug 'xolox/vim-shell'
@@ -195,6 +198,13 @@ else
         set t_Co=256
     endif
 endif
+
+" 翻译快捷键映射为Ctrl-T
+if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
+    vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
+    nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
+    noremap <leader>yd :Yde<CR>
+end
 
 function! InitializeDirectories()
     let parent = $HOME
