@@ -52,7 +52,16 @@ endif
 
 " -------------------------------- 设置 vim-plug ----------------------
 call plug#begin('~/.vim/plugin')
+" color scheme
 Plug 'tlzyh/vim-colors'
+
+" Lua
+Plug 'xolox/vim-misc'
+Plug 'xolox/vim-shell'
+Plug 'xolox/vim-lua-ftplugin'
+
+" 高亮行
+Plug 'vim-scripts/Visual-Mark'
 call plug#end()
 
 " -------------------------------- End vim-plug ----------------------
