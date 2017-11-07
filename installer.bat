@@ -44,4 +44,4 @@ if not exist "%HOME%\.vim\vimfiles\autoload" (
 REM copy plug.vim to autoload directory
 xcopy /Y /Q "%HOME%\.vim\plugin\vim-plug\plug.vim" "%HOME%\.vim\vimfiles\autoload"
 
-call vim -u "%APP_PATH%\.vimrc" +PlugInstall
+call gvim -u "%APP_PATH%\.vimrc" +PlugInstall
