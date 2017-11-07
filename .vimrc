@@ -4,17 +4,12 @@
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: his file is placed in the public domain.
 
-" 是否是mac平台
 silent function! IsOSX()
     return has('macunix')
 endfunction
-
-" 是否是linux或者类linux平台
 silent function! IsLinux()
     return has('unix') && !has('macunix') && !has('win32unix')
 endfunction
-
-" 是否是windows平台
 silent function! IsWindows()
     return  (has('win32') || has('win64'))
 endfunction
@@ -27,7 +22,7 @@ if !IsWindows()
 endif
 
 if IsWindows()
-    set runtimepath=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
+    "set runtimepath+=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
     set noerrorbells visualbell t_vb=
     if has('autocmd')
         " 关闭响铃
@@ -61,6 +56,136 @@ Plug 'tlzyh/vim-colors'
 call plug#end()
 
 " -------------------------------- End vim-plug ----------------------
+filetype plugin indent on
+syntax on
+set mouse=a
+set mousehide
+scriptencoding utf-8
+
+if has('clipboard')
+    if has('unnamedplus')
+        set clipboard=unnamed,unnamedplus
+    else
+        set clipboard=unnamed
+    endif
+endif
+
+" 打开Buff，当前目录切换到当前文件所在目录
+autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
+
+set shortmess+=filmnrxoOtT
+set viewoptions=folds,options,cursor,unix,slash
+set virtualedit=onemore
+set history=1000
+set nospell
+set hidden
+set iskeyword-=.
+set iskeyword-=#
+set iskeyword-=-
+
+" 切换buffer的时候，光标回到之前的位置
+function! ResCur()
+    if line("'\"") <= line("$")
+        silent! normal! g`"
+        return 1
+    endif
+endfunction
+augroup resCur
+    autocmd!
+    autocmd BufWinEnter * call ResCur()
+augroup END
+
+set backup
+if has('persistent_undo')
+    set undofile
+    set undolevels=1000
+    set undoreload=10000
+endif
+
+set tabpagemax=15
+set showmode
+
+set cursorline
+
+highlight clear SignColumn
+highlight clear LineNr
+
+if has('cmdline_info')
+    set ruler
+    set rulerformat=%30(%=\:b%n%y%m%r%w\ %l,%c%V\ %P%)
+    set showcmd
+endif
+
+if has('statusline')
+    set laststatus=2
+    set statusline=%<%f\
+    set statusline+=%w%h%m%r
+    set statusline+=\ [%{&ff}/%Y]
+    set statusline+=\ [%{getcwd()}]
+    set statusline+=%=%-14.(%l,%c%V%)\ %p%%
+endif
+
+set backspace=indent,eol,start
+set linespace=0
+set relativenumber
+set number
+set showmatch
+set incsearch
+set hlsearch
+set winminheight=0
+set ignorecase
+set smartcase
+set wildmenu
+set wildmode=list:longest,full
+set whichwrap=b,s,h,l,<,>,[,]
+set scrolljump=5
+set scrolloff=3
+set foldenable
+set list
+set listchars=tab:›\ ,trail:•,extends:#,nbsp:. 
+set nowrap
+set autoindent
+set shiftwidth=4
+set expandtab
+set tabstop=4
+set softtabstop=4
+set nojoinspaces
+set splitright
+set splitbelow
+set pastetoggle=<F12>
+
+map <S-H> gT
+map <S-L> gt
+
+let mapleader = ','
+
+nmap <leader>f0 :set foldlevel=0<CR>
+nmap <leader>f1 :set foldlevel=1<CR>
+nmap <leader>f2 :set foldlevel=2<CR>
+nmap <leader>f3 :set foldlevel=3<CR>
+nmap <leader>f4 :set foldlevel=4<CR>
+nmap <leader>f5 :set foldlevel=5<CR>
+nmap <leader>f6 :set foldlevel=6<CR>
+nmap <leader>f7 :set foldlevel=7<CR>
+nmap <leader>f8 :set foldlevel=8<CR>
+nmap <leader>f9 :set foldlevel=9<CR>
+
+if has('gui_running')
+    set guioptions-=T
+    set lines=40
+    if IsLinux()
+        set guifont=Andale\ Mono\ Regular\ 12,Menlo\ Regular\ 11,Consolas\ Regular\ 12,Courier\ New\ Regular\ 14
+    elseif IsOSX()
+        set guifont=Andale\ Mono\ Regular:h12,Menlo\ Regular:h11,Consolas\ Regular:h12,Courier\ New\ Regular:h14
+    elseif IsWindows()
+        " set guifont=Andale_Mono:h10,Menlo:h10,Consolas:h10,Courier_New:h10
+        set guifont=Courier_New:h11
+    endif
+else
+    if &term == 'xterm' || &term == 'screen'
+        set t_Co=256
+    endif
+endif
 
 function! InitializeDirectories()
     let parent = $HOME
@@ -97,3 +222,4 @@ call InitializeDirectories()
 if filereadable(expand("~/.vim/plugin/vim-colors/colors/molokai.vim"))
     colorscheme molokai
 endif
+
