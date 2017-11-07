@@ -65,6 +65,11 @@ Plug 'xolox/vim-lua-ftplugin'
 
 " 高亮行
 Plug 'vim-scripts/Visual-Mark'
+
+" 搜索
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+
 call plug#end()
 
 " -------------------------------- End vim-plug ----------------------
