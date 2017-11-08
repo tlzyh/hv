@@ -260,6 +260,9 @@ if isdirectory(expand("~/.vim/plugin/fzf.vim"))
     " previous-history instead of down and up. If you don't like the change,
     " explicitly bind the keys to down and up in your $FZF_DEFAULT_OPTS.
     let g:fzf_history_dir = '~/.local/share/fzf-history'
+
+    vnoremap <silent> <C-P> <Esc>:FZF<CR>
+    nnoremap <silent> <C-P> <Esc>:FZF<CR>
 end
 
 function! InitializeDirectories()
