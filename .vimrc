@@ -266,7 +266,13 @@ if isdirectory(expand("~/.vim/plugin/fzf.vim"))
 end
 
 function! InitializeDirectories()
-    let parent = $HOME
+    let parent = $HOME . '/.vimtmpdir/'
+
+    " create parent dir
+    if !isdirectory(parent)
+        call mkdir(parent)
+    endif
+
     let prefix = 'vim'
     let dir_list = {
                 \ 'backup': 'backupdir',
