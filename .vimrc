@@ -204,6 +204,8 @@ else
     endif
 endif
 
+nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+
 " 翻译快捷键映射为Ctrl-T
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
