@@ -38,10 +38,8 @@ endfunction
 if IsWindows()
     "set runtimepath+=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
     set noerrorbells visualbell t_vb=
-    if has('autocmd')
-        " 关闭响铃
-        autocmd GUIEnter * set visualbell t_vb=
-    endif
+    " 关闭响铃
+    autocmd GUIEnter * set visualbell t_vb=
 
     " 隐藏菜单工具栏。开关为F3
     set guioptions-=m
