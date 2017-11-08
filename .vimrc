@@ -21,6 +21,20 @@ if !IsWindows()
     set shell=/bin/sh
 endif
 
+
+silent function! SwitchMenu()
+    if IsWindows()
+        if &guioptions =~# 'T'
+            set guioptions-=T
+            set guioptions-=m
+        else
+            set guioptions+=T
+            set guioptions+=m
+        endif
+    endif
+endfunction
+
+
 if IsWindows()
     "set runtimepath+=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
     set noerrorbells visualbell t_vb=
@@ -32,13 +46,7 @@ if IsWindows()
     " 隐藏菜单工具栏。开关为F3
     set guioptions-=m
     set guioptions-=T
-    map <silent> <F3> :if &guioptions =~# 'T' <Bar>
-        \set guioptions-=T <Bar>
-        \set guioptions-=m <Bar>
-    \else <Bar>
-        \set guioptions+=T <Bar>
-        \set guioptions+=m <Bar>
-    \endif<CR>
+    map <silent> <F3> :call SwitchMenu() <CR>
 
     if has("multi_byte")
         set encoding=utf-8
@@ -86,13 +94,6 @@ if has('clipboard')
         set clipboard=unnamed
     endif
 endif
-
-" 打开Buff，当前目录切换到当前文件所在目录
-" autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
-
-
-" vnoremap <silent> <leader> :FZF<CR>
-" nnoremap <silent> <C-P> <Esc>:FZF<CR>
 
 set shortmess+=filmnrxoOtT
 set viewoptions=folds,options,cursor,unix,slash
@@ -212,6 +213,37 @@ endif
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 
+
+" 第一次打开的目录作为工程目录
+silent function! InitProjectDir()
+    let g:hv_project_directory = getcwd()
+endfunction
+augroup project_dir_init
+    autocmd!
+    autocmd GUIEnter * call InitProjectDir()
+augroup END
+
+" 目录切换设置
+
+" 打开Buff，当前目录切换到当前文件所在目录
+" autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
+silent function! SwitchProjectDir()
+    if bufname("") !~ "^\[A-Za-z0-9\]*://"
+        if getcwd() == g:hv_project_directory
+            " 设置为当前路径, 可以拼接路径，也可以像下面一样
+            lcd %:p:h
+            echo 'change to current directory:' . getcwd()
+        else
+            exe "lcd " . g:hv_project_directory
+            echo 'change to project directory:' . g:hv_project_directory
+        endif
+    endif
+endfunction
+
+vnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
+nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
+
+
 " 翻译快捷键映射为Ctrl-T
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
@@ -220,11 +252,6 @@ if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
 end
 
 if isdirectory(expand("~/.vim/plugin/fzf.vim"))
-    let g:fzf_action = {
-      \ 'ctrl-t': 'tab split',
-      \ 'ctrl-x': 'split',
-      \ 'ctrl-v': 'vsplit' }
-
     " An action can be a reference to a function that processes selected lines
     function! s:build_quickfix_list(lines)
       call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
@@ -243,9 +270,9 @@ if isdirectory(expand("~/.vim/plugin/fzf.vim"))
     let g:fzf_layout = { 'down': '~40%' }
 
     " You can set up fzf window using a Vim command (Neovim or latest Vim 8 required)
-    let g:fzf_layout = { 'window': 'enew' }
-    let g:fzf_layout = { 'window': '-tabnew' }
-    let g:fzf_layout = { 'window': '10split enew' }
+    " let g:fzf_layout = { 'window': 'enew' }
+    " let g:fzf_layout = { 'window': '-tabnew' }
+    " let g:fzf_layout = { 'window': '10split enew' }
 
     " Customize fzf colors to match your color scheme
     let g:fzf_colors =
