@@ -9,7 +9,7 @@ REM License: This file is placed in the public domain.
 
 @set APP_PATH=%HOME%\.hv
 if not exist "%APP_PATH%" (
-    call git clone -b master https://github.com/tlzyh/hv.git "%APP_PATH%"
+    call git clone -b master git@github.com:tlzyh/hv.git "%APP_PATH%"
 ) else (
     @set ORIGINAL_DIR=%CD%
     echo updating hv...

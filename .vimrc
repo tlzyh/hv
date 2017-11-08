@@ -34,7 +34,7 @@ if IsWindows()
     set guioptions-=T
     map <silent> <F3> :if &guioptions =~# 'T' <Bar>
         \set guioptions-=T <Bar>
-        \set guioptions-=m <bar>
+        \set guioptions-=m <Bar>
     \else <Bar>
         \set guioptions+=T <Bar>
         \set guioptions+=m <Bar>
@@ -88,7 +88,11 @@ if has('clipboard')
 endif
 
 " 打开Buff，当前目录切换到当前文件所在目录
-autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
+" autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
+
+
+" vnoremap <silent> <leader> :FZF<CR>
+" nnoremap <silent> <C-P> <Esc>:FZF<CR>
 
 set shortmess+=filmnrxoOtT
 set viewoptions=folds,options,cursor,unix,slash
@@ -204,7 +208,9 @@ else
     endif
 endif
 
+" 映射vimrc编辑
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
+nnoremap <leader>sv :source $MYVIMRC<cr>
 
 " 翻译快捷键映射为Ctrl-T
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
