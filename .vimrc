@@ -67,7 +67,7 @@ Plug 'xolox/vim-lua-ftplugin'
 Plug 'vim-scripts/Visual-Mark'
 
 " 搜索
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --bin' }
+Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 
 call plug#end()
