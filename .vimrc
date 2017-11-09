@@ -21,7 +21,6 @@ if !IsWindows()
     set shell=/bin/sh
 endif
 
-
 silent function! SwitchMenu()
     if IsWindows()
         if &guioptions =~# 'T'
@@ -33,7 +32,6 @@ silent function! SwitchMenu()
         endif
     endif
 endfunction
-
 
 if IsWindows()
     "set runtimepath+=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
@@ -78,7 +76,7 @@ Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 
 " 内容查找
-Plug 'vim-scripts/EasyGrep'
+Plug 'tlzyh/grep'
 
 call plug#end()
 
@@ -128,7 +126,6 @@ endif
 
 set tabpagemax=15
 set showmode
-
 set cursorline
 
 highlight clear SignColumn
@@ -226,12 +223,11 @@ augroup project_dir_init
 augroup END
 
 " 目录切换设置
-
 " 打开Buff，当前目录切换到当前文件所在目录
 " autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
 silent function! SwitchProjectDir()
     if bufname("") !~ "^\[A-Za-z0-9\]*://"
-        if getcwd() == g:hv_project_directory
+        if toupper(getcwd()) == toupper(g:hv_project_directory)
             " 设置为当前路径, 可以拼接路径，也可以像下面一样
             lcd %:p:h
             echo 'change to current directory:' . getcwd()
@@ -245,6 +241,14 @@ endfunction
 vnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 
+" quickfix 配置
+silent function! OpenOrCloseQuickfix()
+    " 垂直打开，去掉前缀 vert为水平打开
+    vert copen 30
+endfunction
+vnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
+nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
+
 
 " 翻译快捷键映射为Ctrl-T
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
@@ -252,6 +256,12 @@ if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
     noremap <leader>yd :Yde<CR>
 end
+
+" 文件折叠
+augroup filetype_vim
+    autocmd!
+    autocmd FileType vim setlocal foldmethod=marker
+augroup END
 
 if isdirectory(expand("~/.vim/plugin/fzf.vim"))
     " An action can be a reference to a function that processes selected lines
