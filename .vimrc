@@ -66,8 +66,9 @@ Plug 'tlzyh/vim-youdao-translater'
 
 " Lua
 Plug 'xolox/vim-misc'
-Plug 'xolox/vim-shell'
 Plug 'xolox/vim-lua-ftplugin'
+
+Plug 'xolox/vim-shell'
 
 " 高亮行
 Plug 'vim-scripts/Visual-Mark'
@@ -75,6 +76,10 @@ Plug 'vim-scripts/Visual-Mark'
 " 搜索
 Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
+if IsWindows()
+    " 内容查找
+    Plug 'tlzyh/findstr.vim'
+end
 
 call plug#end()
 
