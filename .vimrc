@@ -232,7 +232,7 @@ silent function! SwitchProjectDir()
             lcd %:p:h
             echo 'change to current directory:' . getcwd()
         else
-            exe "lcd " . g:hv_project_directory
+            execute "lcd " . g:hv_project_directory
             echo 'change to project directory:' . g:hv_project_directory
         endif
     endif
@@ -244,11 +244,51 @@ nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 " quickfix 配置
 silent function! OpenOrCloseQuickfix()
     " 垂直打开，去掉前缀 vert为水平打开
+    " TODO
     vert copen 30
 endfunction
 vnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
 nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
 
+
+" 文件折叠
+augroup filetype_vim
+    autocmd!
+    autocmd FileType vim setlocal foldmethod=marker
+augroup END
+
+" 文件搜索 -----------------------------------------------------------
+" 获取选中的文字
+function! GetVisualSelection()
+    try
+        let a_save = @a
+        normal! gv"ay
+        return @a
+    finally
+        let @a = a_save
+    endtry
+endfunction
+
+" 获取光标位置字符
+function! GetCursorWord()
+    return expand("<cword>")
+endfunction
+
+" 文件中删除
+silent function! SearchInFiles()
+    let str = GetVisualSelection()
+    if strlen(str) <= 0
+        let str = GetCursorWord()
+    end
+    if strlen(str) > 0
+        execute "Grep -rna --color=auto \"" . str . "\" " . getcwd()
+    end
+endfunction
+if isdirectory(expand("~/.vim/plugin/grep"))
+    vnoremap <silent> <C-S> :call SearchInFiles() <CR>
+    nnoremap <silent> <C-S> :call SearchInFiles() <CR>
+endif
+"----------------------------------- end --------------------------
 
 " 翻译快捷键映射为Ctrl-T
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
@@ -256,12 +296,6 @@ if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
     noremap <leader>yd :Yde<CR>
 end
-
-" 文件折叠
-augroup filetype_vim
-    autocmd!
-    autocmd FileType vim setlocal foldmethod=marker
-augroup END
 
 if isdirectory(expand("~/.vim/plugin/fzf.vim"))
     " An action can be a reference to a function that processes selected lines
@@ -344,7 +378,7 @@ function! InitializeDirectories()
             echo "Try: mkdir -p " . directory
         else
             let directory = substitute(directory, " ", "\\\\ ", "g")
-            exec "set " . settingname . "=" . directory
+            execute "set " . settingname . "=" . directory
         endif
     endfor
 endfunction
