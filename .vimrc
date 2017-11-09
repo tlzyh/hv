@@ -76,10 +76,9 @@ Plug 'vim-scripts/Visual-Mark'
 " 搜索
 Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
-if IsWindows()
-    " 内容查找
-    Plug 'tlzyh/findstr.vim'
-end
+
+" 内容查找
+Plug 'vim-scripts/EasyGrep'
 
 call plug#end()
 
