@@ -249,6 +249,7 @@ silent function! OpenOrCloseQuickfix()
 endfunction
 vnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
 nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
+" set switchbuf+=usetab,newtab
 
 
 " 文件折叠
