@@ -148,7 +148,7 @@ if has('cmdline_info')
 endif
 
 set backspace=indent,eol,start
-set linespace=0vim-airline-themes
+set linespace=0
 set relativenumber
 set number
 set showmatch
