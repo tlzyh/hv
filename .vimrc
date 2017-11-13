@@ -243,14 +243,16 @@ vnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 
 " quickfix 配置
-silent function! OpenOrCloseQuickfix()
-    " 垂直打开，去掉前缀 vert为水平打开
-    " TODO
-    vert copen 30
-endfunction
-vnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
-nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
-" set switchbuf+=usetab,newtab
+" silent function! OpenOrCloseQuickfix()
+"     " 垂直打开，去掉前缀 vert为水平打开
+"     " TODO
+"     vert copen 30
+" endfunction
+" vnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
+" nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
+
+" 设置quickfix 打开文件到新的tab
+set switchbuf+=usetab,newtab
 
 
 " 文件折叠
