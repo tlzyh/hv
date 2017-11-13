@@ -85,7 +85,8 @@ Plug 'junegunn/fzf.vim'
 Plug 'tlzyh/grep'
 
 " 状态栏
-Plug 'tlzyh/vim-powerline'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
 
 call plug#end()
 
@@ -147,7 +148,7 @@ if has('cmdline_info')
 endif
 
 set backspace=indent,eol,start
-set linespace=0
+set linespace=0vim-airline-themes
 set relativenumber
 set number
 set showmatch
@@ -292,9 +293,16 @@ endif
 "----------------------------------- end --------------------------
 
 " 状态栏，如果没有powerline 使用自己的配置
-if isdirectory(expand("~/.vim/plugin/vim-powerline"))
-    set laststatus=2
-    let g:Powerline_symbols='unicode'
+if isdirectory(expand("~/.vim/plugin/vim-airline"))
+    if isdirectory(expand("~/.vim/plugin/vim-airline-themes"))
+        if !exists('g:airline_theme')
+            let g:airline_theme = 'solarized'
+        endif
+        if !exists('g:airline_powerline_fonts')
+            let g:airline_left_sep='›'
+            let g:airline_right_sep='‹'
+        endif
+    endif
 else
     if has('statusline')
         set laststatus=2
