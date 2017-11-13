@@ -292,7 +292,10 @@ endif
 "----------------------------------- end --------------------------
 
 " 状态栏，如果没有powerline 使用自己的配置
-if !isdirectory(expand("~/.vim/plugin/vim-powerline"))
+if isdirectory(expand("~/.vim/plugin/vim-powerline"))
+    set laststatus=2
+    let g:Powerline_symbols='unicode'
+else
     if has('statusline')
         set laststatus=2
         set statusline=%<%f\
