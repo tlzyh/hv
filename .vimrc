@@ -45,11 +45,17 @@ if IsWindows()
     map <silent> <F3> :call SwitchMenu() <CR>
 
     if has("multi_byte")
+		" 全局编码
         set encoding=utf-8
+		" 无BOM头
         set nobomb
-        set fileencodings=utf-8,chinese,latin-1
-        set fileencoding=chinese
+		" 可用编码列表
+        set fileencodings=utf-8,cp936,latin-1
+		" 设置新建，打开，保存时候的编码
+        set fileencoding=utf-8
+		" 终端编码
         let &termencoding=&encoding
+		" 设置消息编码格式
         language messages zh_CN.utf-8
     endif
 endif
@@ -77,6 +83,9 @@ Plug 'junegunn/fzf.vim'
 
 " 内容查找
 Plug 'tlzyh/grep'
+
+" 状态栏
+Plug 'tlzyh/vim-powerline'
 
 call plug#end()
 
@@ -135,15 +144,6 @@ if has('cmdline_info')
     set ruler
     set rulerformat=%30(%=\:b%n%y%m%r%w\ %l,%c%V\ %P%)
     set showcmd
-endif
-
-if has('statusline')
-    set laststatus=2
-    set statusline=%<%f\
-    set statusline+=%w%h%m%r
-    set statusline+=\ [%{&ff}/%Y]
-    set statusline+=\ [%{getcwd()}]
-    set statusline+=%=%-14.(%l,%c%V%)\ %p%%
 endif
 
 set backspace=indent,eol,start
@@ -282,7 +282,7 @@ silent function! SearchInFiles()
         let str = GetCursorWord()
     end
     if strlen(str) > 0
-        execute "Grep -rna --color=auto \"" . str . "\" " . getcwd()
+        execute "Grep -rna \"" . str . "\" " . getcwd()
     end
 endfunction
 if isdirectory(expand("~/.vim/plugin/grep"))
@@ -290,6 +290,18 @@ if isdirectory(expand("~/.vim/plugin/grep"))
     nnoremap <silent> <C-S> :call SearchInFiles() <CR>
 endif
 "----------------------------------- end --------------------------
+
+" 状态栏，如果没有powerline 使用自己的配置
+if !isdirectory(expand("~/.vim/plugin/vim-powerline"))
+    if has('statusline')
+        set laststatus=2
+        set statusline=%<%f\
+        set statusline+=%w%h%m%r
+        set statusline+=\ [%{&ff}/%Y]
+        set statusline+=\ [%{getcwd()}]
+        set statusline+=%=%-14.(%l,%c%V%)\ %p%%
+    endif
+endif
 
 " 翻译快捷键映射为Ctrl-T
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
