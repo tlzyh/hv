@@ -176,8 +176,8 @@ set splitright
 set splitbelow
 set pastetoggle=<F12>
 
-map <S-H> gT
-map <S-L> gt
+map <C-H> gT
+map <C-L> gt
 
 let mapleader = ','
 
