@@ -4,15 +4,30 @@
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: his file is placed in the public domain.
 
-silent function! IsOSX()
+" 是否是macOs
+function! IsOSX()
     return has('macunix')
 endfunction
-silent function! IsLinux()
+
+" 是否是Linux平台
+function! IsLinux()
     return has('unix') && !has('macunix') && !has('win32unix')
 endfunction
-silent function! IsWindows()
+
+" 是否是windows平台
+function! IsWindows()
     return  (has('win32') || has('win64'))
 endfunction
+
+" 是否是GUI版本
+function! IsGui()
+    return has('gui_running')
+endfunction
+
+" 变量初始化
+if !exists('g:hz_tab_flag')
+    let g:hv_tab_flag = 1
+endif
 
 set nocompatible
 set background=dark
@@ -42,7 +57,7 @@ if IsWindows()
     " 隐藏菜单工具栏。开关为F3
     set guioptions-=m
     set guioptions-=T
-    map <silent> <F3> :call SwitchMenu() <CR>
+    noremap <silent> <F3> :call SwitchMenu() <CR>
 
     if has("multi_byte")
 		" 全局编码
@@ -176,9 +191,6 @@ set splitright
 set splitbelow
 set pastetoggle=<F12>
 
-map <C-H> gT
-map <C-L> gt
-
 let mapleader = ','
 
 nmap <leader>f0 :set foldlevel=0<CR>
@@ -192,7 +204,7 @@ nmap <leader>f7 :set foldlevel=7<CR>
 nmap <leader>f8 :set foldlevel=8<CR>
 nmap <leader>f9 :set foldlevel=9<CR>
 
-if has('gui_running')
+if IsGui()
     set guioptions-=T
     set lines=40
     if IsLinux()
@@ -215,12 +227,13 @@ nnoremap <leader>sv :source $MYVIMRC<cr>
 
 
 " 第一次打开的目录作为工程目录
-silent function! InitProjectDir()
+silent function! GuiEnterInit()
     let g:hv_project_directory = getcwd()
 endfunction
+
 augroup project_dir_init
     autocmd!
-    autocmd GUIEnter * call InitProjectDir()
+    autocmd GUIEnter * call GuiEnterInit()
 augroup END
 
 " 目录切换设置
@@ -252,7 +265,7 @@ nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 " nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
 
 " 设置quickfix 打开文件到新的tab
-set switchbuf+=usetab,newtab
+set switchbuf+=useopen,usetab,newtab
 
 
 " 文件折叠
@@ -283,16 +296,267 @@ silent function! SearchInFiles()
     let str = GetVisualSelection()
     if strlen(str) <= 0
         let str = GetCursorWord()
-    end
+    endif
     if strlen(str) > 0
         execute "Grep -rna \"" . str . "\" " . getcwd()
-    end
+    endif
 endfunction
 if isdirectory(expand("~/.vim/plugin/grep"))
     vnoremap <silent> <C-S> :call SearchInFiles() <CR>
     nnoremap <silent> <C-S> :call SearchInFiles() <CR>
 endif
+
+
+" tab 设置---------------------------------------------------------
+
+" 左右切换tab
+noremap <C-H> gT
+noremap <C-L> gt
+
+silent function! SwitchTab()
+    if exists("g:hv_tab_flag")
+        tabnext
+        unlet g:hv_tab_flag
+    else
+        tabprev
+        let g:hv_tab_flag = 1
+    endif
+endfunction
+
+if IsGui()
+    if IsOSX()
+        " set macmeta
+        noremap <silent><C-TAB> :tabprev<CR>
+        inoremap <silent><C-TAB> <ESC>:tabprev<CR>
+        noremap <silent><D-1> :tabn 1<CR>
+        noremap <silent><D-2> :tabn 2<CR>
+        noremap <silent><D-3> :tabn 3<CR>
+        noremap <silent><D-4> :tabn 4<CR>
+        noremap <silent><D-5> :tabn 5<CR>
+        noremap <silent><D-6> :tabn 6<CR>
+        noremap <silent><D-7> :tabn 7<CR>
+        noremap <silent><D-8> :tabn 8<CR>
+        noremap <silent><D-9> :tabn 9<CR>
+        noremap <silent><D-0> :tabn 10<CR>
+        inoremap <silent><D-1> <ESC>:tabn 1<CR>
+        inoremap <silent><D-2> <ESC>:tabn 2<CR>
+        inoremap <silent><D-3> <ESC>:tabn 3<CR>
+        inoremap <silent><D-4> <ESC>:tabn 4<CR>
+        inoremap <silent><D-5> <ESC>:tabn 5<CR>
+        inoremap <silent><D-6> <ESC>:tabn 6<CR>
+        inoremap <silent><D-7> <ESC>:tabn 7<CR>
+        inoremap <silent><D-8> <ESC>:tabn 8<CR>
+        inoremap <silent><D-9> <ESC>:tabn 9<CR>
+        inoremap <silent><D-0> <ESC>:tabn 10<CR>
+        noremap <silent><D-O> :browse tabnew<CR>
+        inoremap <silent><D-O> <ESC>:browse tabnew<CR>
+    else
+        " 禁用菜单的alt快捷键
+        set winaltkeys=no
+        " set macmeta
+        " noremap <silent><C-TAB> :tabprev<CR>
+        " inoremap <silent><C-TAB> <ESC>:tabprev<CR>
+        noremap <silent><C-TAB> :call SwitchTab()<CR>
+        inoremap <silent><C-TAB> <ESC>:call SwitchTab()<CR>
+        noremap <silent><M-1> :tabn 1<CR>
+        noremap <silent><M-2> :tabn 2<CR>
+        noremap <silent><M-3> :tabn 3<CR>
+        noremap <silent><M-4> :tabn 4<CR>
+        noremap <silent><M-5> :tabn 5<CR>
+        noremap <silent><M-6> :tabn 6<CR>
+        noremap <silent><M-7> :tabn 7<CR>
+        noremap <silent><M-8> :tabn 8<CR>
+        noremap <silent><M-9> :tabn 9<CR>
+        noremap <silent><M-0> :tabn 10<CR>
+        inoremap <silent><M-1> <ESC>:tabn 1<CR>
+        inoremap <silent><M-2> <ESC>:tabn 2<CR>
+        inoremap <silent><M-3> <ESC>:tabn 3<CR>
+        inoremap <silent><M-4> <ESC>:tabn 4<CR>
+        inoremap <silent><M-5> <ESC>:tabn 5<CR>
+        inoremap <silent><M-6> <ESC>:tabn 6<CR>
+        inoremap <silent><M-7> <ESC>:tabn 7<CR>
+        inoremap <silent><M-8> <ESC>:tabn 8<CR>
+        inoremap <silent><M-9> <ESC>:tabn 9<CR>
+        inoremap <silent><M-0> <ESC>:tabn 10<CR>
+    end
+else
+    " 使用终端自定义按键序列，把alt-n 或者alt-shift-n 设置为
+    " 发送 "<ESC>]{0}n~" 按键序列
+    noremap <silent><ESC>]{0}1~ :tabn 1<CR>
+    noremap <silent><ESC>]{0}2~ :tabn 2<CR>
+    noremap <silent><ESC>]{0}3~ :tabn 3<CR>
+    noremap <silent><ESC>]{0}4~ :tabn 4<CR>
+    noremap <silent><ESC>]{0}5~ :tabn 5<CR>
+    noremap <silent><ESC>]{0}6~ :tabn 6<CR>
+    noremap <silent><ESC>]{0}7~ :tabn 7<CR>
+    noremap <silent><ESC>]{0}8~ :tabn 8<CR>
+    noremap <silent><ESC>]{0}9~ :tabn 9<CR>
+    noremap <silent><ESC>]{0}0~ :tabn 10<CR>
+    inoremap <silent><ESC>]{0}1~ <ESC>:tabn 1<CR>
+    inoremap <silent><ESC>]{0}2~ <ESC>:tabn 2<CR>
+    inoremap <silent><ESC>]{0}3~ <ESC>:tabn 3<CR>
+    inoremap <silent><ESC>]{0}4~ <ESC>:tabn 4<CR>
+    inoremap <silent><ESC>]{0}5~ <ESC>:tabn 5<CR>
+    inoremap <silent><ESC>]{0}6~ <ESC>:tabn 6<CR>
+    inoremap <silent><ESC>]{0}7~ <ESC>:tabn 7<CR>
+    inoremap <silent><ESC>]{0}8~ <ESC>:tabn 8<CR>
+    inoremap <silent><ESC>]{0}9~ <ESC>:tabn 9<CR>
+    inoremap <silent><ESC>]{0}0~ <ESC>:tabn 10<CR>
+endif
+
+" make tabline in terminal mode
+function! Vim_NeatTabLine()
+    let s = ''
+    for i in range(tabpagenr('$'))
+        " select the highlighting
+        if i + 1 == tabpagenr()
+            let s .= '%#TabLineSel#'
+        else
+            let s .= '%#TabLine#'
+        endif
+        " set the tab page number (for mouse clicks)
+        let s .= '%' . (i + 1) . 'T'
+        " the label is made by MyTabLabel()
+        let s .= ' %{Vim_NeatTabLabel(' . (i + 1) . ')} '
+    endfor
+    " after the last tab fill with TabLineFill and reset tab page nr
+    let s .= '%#TabLineFill#%T'
+    " right-align the label to close the current tab page
+    if tabpagenr('$') > 1
+        let s .= '%=%#TabLine#%999XX'
+    endif
+    return s
+endfunc
+ 
+" get a single tab name 
+function! Vim_NeatBuffer(bufnr, fullname)
+    let l:name = bufname(a:bufnr)
+    if getbufvar(a:bufnr, '&modifiable')
+        if l:name == ''
+            return '[No Name]'
+        else
+            if a:fullname 
+                return fnamemodify(l:name, ':p')
+            else
+                return fnamemodify(l:name, ':t')
+            endif
+        endif
+    else
+        let l:buftype = getbufvar(a:bufnr, '&buftype')
+        if l:buftype == 'quickfix'
+            return '[Quickfix]'
+        elseif l:name != ''
+            if a:fullname 
+                return '-'.fnamemodify(l:name, ':p')
+            else
+                return '-'.fnamemodify(l:name, ':t')
+            endif
+        else
+        endif
+        return '[No Name]'
+    endif
+endfunc
+
+" get a single tab label
+function! Vim_NeatTabLabel(n)
+    let l:buflist = tabpagebuflist(a:n)
+    let l:winnr = tabpagewinnr(a:n)
+    let l:bufnr = l:buflist[l:winnr - 1]
+    return Vim_NeatBuffer(l:bufnr, 0)
+endfunc
+
+" get a single tab label in gui
+function! Vim_NeatGuiTabLabel()
+    let l:num = v:lnum
+    let l:buflist = tabpagebuflist(l:num)
+    let l:winnr = tabpagewinnr(l:num)
+    let l:bufnr = l:buflist[l:winnr - 1]
+    return Vim_NeatBuffer(l:bufnr, 0)
+endfunc
+ 
+" setup new tabline, just like %M%t in macvim
+set tabline=%!Vim_NeatTabLine()
+set guitablabel=%{Vim_NeatGuiTabLabel()}
+
+function! Vim_NeatGuiTabTip()
+    let tip = ''
+    let bufnrlist = tabpagebuflist(v:lnum)
+    for bufnr in bufnrlist
+        " separate buffer entries
+        if tip != ''
+            let tip .= " \n"
+        endif
+        " Add name of buffer
+        let name = Vim_NeatBuffer(bufnr, 1)
+        let tip .= name
+        " add modified/modifiable flags
+        if getbufvar(bufnr, "&modified")
+            let tip .= ' [+]'
+        endif
+        if getbufvar(bufnr, "&modifiable")==0
+            let tip .= ' [-]'
+        endif
+    endfor
+    return tip
+endfunc
+set guitabtooltip=%{Vim_NeatGuiTabTip()}
+
 "----------------------------------- end --------------------------
+
+" netrw 插件
+function! Open_Explore_Terminal(where)
+    let l:path = expand("%:p:h")
+    if l:path == ''
+        let l:path = getcwd()
+    endif
+    if a:where == 0
+        exec 'Explore '.fnameescape(l:path)
+    elseif a:where == 1
+        exec 'vnew'
+        exec 'Explore '.fnameescape(l:path)
+    else
+        exec 'tabnew'
+        exec 'Explore '.fnameescape(l:path)
+    endif
+endfunc
+
+function! s:Filter_Push(desc, wildcard)
+    let g:browsefilter .= a:desc . " (" . a:wildcard . ")\t" . a:wildcard . "\n"
+endfunc
+function! Open_Browse_GUI(where)
+    let l:path = expand("%:p:h")
+    if l:path == '' | let l:path = getcwd() | endif
+    if exists('g:browsefilter') && exists('b:browsefilter')
+        if g:browsefilter != ''
+            let b:browsefilter = g:browsefilter
+        endif
+    endif
+    if a:where == 0
+        exec 'browse e '.fnameescape(l:path)
+    elseif a:where == 1
+        exec 'browse vnew '.fnameescape(l:path)
+    else
+        exec 'browse tabnew '.fnameescape(l:path)
+    endif
+endfunc
+
+if IsGui()
+    let g:browsefilter = ''
+    call s:Filter_Push("All Files", "*")
+    call s:Filter_Push("C/C++/Object-C", "*.c;*.cpp;*.cc;*.h;*.hh;*.hpp;*.m;*.mm")
+    call s:Filter_Push("Python", "*.py;*.pyw")
+    call s:Filter_Push("Text", "*.txt")
+    call s:Filter_Push("Lua", "*.lua")
+    call s:Filter_Push("Vim Script", "*.vim")
+
+    vnoremap <silent> <C-O> :call Open_Browse_GUI(2) <CR>
+    nnoremap <silent> <C-O> :call Open_Browse_GUI(2) <CR>
+    inoremap <silent> <C-O> :call Open_Browse_GUI(2) <CR>
+else
+    vnoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
+    nnoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
+    inoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
+endif
 
 " 状态栏，如果没有powerline 使用自己的配置
 if isdirectory(expand("~/.vim/plugin/vim-airline"))
