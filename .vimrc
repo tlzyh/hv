@@ -1,8 +1,8 @@
 " vim configuration
-" Last Change: 2017/11/03
+" Last Change: 2017/11/16
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
-" License: his file is placed in the public domain.
+" License: This file is placed in the public domain.
 
 " 是否是macOs
 function! IsOSX()
@@ -23,11 +23,6 @@ endfunction
 function! IsGui()
     return has('gui_running')
 endfunction
-
-" 变量初始化
-if !exists('g:hz_tab_flag')
-    let g:hv_tab_flag = 1
-endif
 
 set nocompatible
 set background=dark
@@ -103,6 +98,9 @@ Plug 'tlzyh/grep'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
+Plug 'skywind3000/asyncrun.vim'
+
+" Plug 'liuchengxu/space-vim-dark'
 call plug#end()
 
 " -------------------------------- End vim-plug ----------------------
@@ -313,21 +311,26 @@ endif
 noremap <C-H> gT
 noremap <C-L> gt
 
-silent function! SwitchTab()
-    if exists("g:hv_tab_flag")
-        tabnext
-        unlet g:hv_tab_flag
-    else
-        tabprev
-        let g:hv_tab_flag = 1
+silent function! TabLeaveInit()
+    let g:hv_pre_tab_nr = tabpagenr()
+endfunction
+augroup tab_leave
+    autocmd!
+    autocmd TabLeave * call TabLeaveInit()
+augroup END
+
+" 切换到上一页
+silent function! SwitchToPreTab()
+    if exists("g:hv_pre_tab_nr")
+        execute "tabn " . g:hv_pre_tab_nr
     endif
 endfunction
 
 if IsGui()
     if IsOSX()
         " set macmeta
-        noremap <silent><C-TAB> :tabprev<CR>
-        inoremap <silent><C-TAB> <ESC>:tabprev<CR>
+        noremap <silent><C-TAB> :call SwitchToPreTab()<CR>
+        inoremap <silent><C-TAB> <ESC>:call SwitchToPreTab()<CR>
         noremap <silent><D-1> :tabn 1<CR>
         noremap <silent><D-2> :tabn 2<CR>
         noremap <silent><D-3> :tabn 3<CR>
@@ -354,10 +357,8 @@ if IsGui()
         " 禁用菜单的alt快捷键
         set winaltkeys=no
         " set macmeta
-        " noremap <silent><C-TAB> :tabprev<CR>
-        " inoremap <silent><C-TAB> <ESC>:tabprev<CR>
-        noremap <silent><C-TAB> :call SwitchTab()<CR>
-        inoremap <silent><C-TAB> <ESC>:call SwitchTab()<CR>
+        noremap <silent><C-TAB> :call SwitchToPreTab()<CR>
+        inoremap <silent><C-TAB> <ESC>:call SwitchToPreTab()<CR>
         noremap <silent><M-1> :tabn 1<CR>
         noremap <silent><M-2> :tabn 2<CR>
         noremap <silent><M-3> :tabn 3<CR>
@@ -587,8 +588,8 @@ if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     noremap <leader>yd :Yde<CR>
 end
 
+" FZF 插件配置
 if isdirectory(expand("~/.vim/plugin/fzf.vim"))
-    " An action can be a reference to a function that processes selected lines
     function! s:build_quickfix_list(lines)
       call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
       copen
@@ -601,16 +602,8 @@ if isdirectory(expand("~/.vim/plugin/fzf.vim"))
       \ 'ctrl-x': 'split',
       \ 'ctrl-v': 'vsplit' }
 
-    " Default fzf layout
-    " - down / up / left / right
     let g:fzf_layout = { 'down': '~40%' }
 
-    " You can set up fzf window using a Vim command (Neovim or latest Vim 8 required)
-    " let g:fzf_layout = { 'window': 'enew' }
-    " let g:fzf_layout = { 'window': '-tabnew' }
-    " let g:fzf_layout = { 'window': '10split enew' }
-
-    " Customize fzf colors to match your color scheme
     let g:fzf_colors =
     \ { 'fg':      ['fg', 'Normal'],
       \ 'bg':      ['bg', 'Normal'],
@@ -626,12 +619,7 @@ if isdirectory(expand("~/.vim/plugin/fzf.vim"))
       \ 'spinner': ['fg', 'Label'],
       \ 'header':  ['fg', 'Comment'] }
 
-    " Enable per-command history.
-    " CTRL-N and CTRL-P will be automatically bound to next-history and
-    " previous-history instead of down and up. If you don't like the change,
-    " explicitly bind the keys to down and up in your $FZF_DEFAULT_OPTS.
     let g:fzf_history_dir = '~/.local/share/fzf-history'
-
     vnoremap <silent> <C-P> <Esc>:FZF<CR>
     nnoremap <silent> <C-P> <Esc>:FZF<CR>
 end
