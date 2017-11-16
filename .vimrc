@@ -4,6 +4,7 @@
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: This file is placed in the public domain.
 
+" 公共函数定义 {{{
 " 是否是macOs
 function! IsOSX()
     return has('macunix')
@@ -23,9 +24,9 @@ endfunction
 function! IsGui()
     return has('gui_running')
 endfunction
+" }}}
 
 set nocompatible
-set background=dark
 
 if !IsWindows()
     set shell=/bin/sh
@@ -44,33 +45,30 @@ silent function! SwitchMenu()
 endfunction
 
 if IsWindows()
-    "set runtimepath+=$HOME/.vim,$VIM/vimfiles,$VIMRUNTIME,$VIM/vimfiles/after,$HOME/.vim/after,$HOME/.vim/vimfiles
-    set noerrorbells visualbell t_vb=
-    " 关闭响铃
-    autocmd GUIEnter * set visualbell t_vb=
-
     " 隐藏菜单工具栏。开关为F3
     set guioptions-=m
     set guioptions-=T
     noremap <silent> <F3> :call SwitchMenu() <CR>
-
-    if has("multi_byte")
-		" 全局编码
-        set encoding=utf-8
-		" 无BOM头
-        set nobomb
-		" 可用编码列表
-        set fileencodings=utf-8,cp936,latin-1
-		" 设置新建，打开，保存时候的编码
-        set fileencoding=utf-8
-		" 终端编码
-        let &termencoding=&encoding
-		" 设置消息编码格式
-        language messages zh_CN.utf-8
-    endif
 endif
 
-" -------------------------------- 设置 vim-plug ----------------------
+" 编码设置 {{{
+if has("multi_byte")
+    " 全局编码
+    set encoding=utf-8
+    " 无BOM头
+    set nobomb
+    " 可用编码列表
+    set fileencodings=utf-8,cp936,latin-1
+    " 设置新建，打开，保存时候的编码
+    set fileencoding=utf-8
+    " 终端编码
+    let &termencoding=&encoding
+    " 设置消息编码格式
+    language messages zh_CN.utf-8
+endif
+"}}}
+
+" 设置 vim-plug {{{
 call plug#begin('~/.vim/plugin')
 " color scheme
 Plug 'tlzyh/vim-colors'
@@ -102,8 +100,9 @@ Plug 'skywind3000/asyncrun.vim'
 
 " Plug 'liuchengxu/space-vim-dark'
 call plug#end()
+" End vim-plug }}}
 
-" -------------------------------- End vim-plug ----------------------
+" 通用配置 {{{
 filetype plugin indent on
 syntax on
 set mouse=a
@@ -189,19 +188,16 @@ set splitright
 set splitbelow
 set pastetoggle=<F12>
 
+" 关闭响铃
+if IsGui()
+	autocmd GUIEnter * set visualbell t_vb=
+endif
+set noerrorbells visualbell t_vb=
+
 let mapleader = ','
+" }}}
 
-nmap <leader>f0 :set foldlevel=0<CR>
-nmap <leader>f1 :set foldlevel=1<CR>
-nmap <leader>f2 :set foldlevel=2<CR>
-nmap <leader>f3 :set foldlevel=3<CR>
-nmap <leader>f4 :set foldlevel=4<CR>
-nmap <leader>f5 :set foldlevel=5<CR>
-nmap <leader>f6 :set foldlevel=6<CR>
-nmap <leader>f7 :set foldlevel=7<CR>
-nmap <leader>f8 :set foldlevel=8<CR>
-nmap <leader>f9 :set foldlevel=9<CR>
-
+" 字体字号{{{
 if IsGui()
     set guioptions-=T
     set lines=40
@@ -218,23 +214,23 @@ else
         set t_Co=256
     endif
 endif
+"}}}
 
-" 映射vimrc编辑
+" vimrc编辑 {{{
 nnoremap <leader>ev :vsplit $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
+" }}}
 
 
+" 目录切换设置 {{{
 " 第一次打开的目录作为工程目录
 silent function! GuiEnterInit()
     let g:hv_project_directory = getcwd()
 endfunction
-
 augroup project_dir_init
     autocmd!
     autocmd GUIEnter * call GuiEnterInit()
 augroup END
-
-" 目录切换设置
 " 打开Buff，当前目录切换到当前文件所在目录
 " autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
 silent function! SwitchProjectDir()
@@ -249,9 +245,9 @@ silent function! SwitchProjectDir()
         endif
     endif
 endfunction
-
 vnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
+" }}}
 
 " quickfix 配置
 " silent function! OpenOrCloseQuickfix()
@@ -261,18 +257,18 @@ nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 " endfunction
 " vnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
 " nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
-
 " 设置quickfix 打开文件到新的tab
 set switchbuf+=useopen,usetab,newtab
 
 
-" 文件折叠
+" 文件折叠 {{{
 augroup filetype_vim
     autocmd!
     autocmd FileType vim setlocal foldmethod=marker
 augroup END
+" }}}
 
-" 文件搜索 -----------------------------------------------------------
+" 文件内容搜索 {{{
 " 获取选中的文字
 function! GetVisualSelection()
     try
@@ -283,15 +279,10 @@ function! GetVisualSelection()
         let @a = a_save
     endtry
 endfunction
-
 " 获取光标位置字符
 function! GetCursorWord()
     return expand("<cword>")
 endfunction
-
-" 搜索相关设置 ------------------------------------------------------
-" 设置使用grep
-set grepprg=grep\ -nH
 " 文件中删除
 silent function! SearchInFiles()
     let str = GetVisualSelection()
@@ -303,10 +294,19 @@ silent function! SearchInFiles()
         execute "AsyncRun grep -rna \"" . str . "\" " . getcwd()
     endif
 endfunction
-vnoremap <silent> <C-S> :call SearchInFiles() <CR>
-nnoremap <silent> <C-S> :call SearchInFiles() <CR>
+if executable('grep')
+    " 设置使用grep
+    if IsWindows()
+        set grepprg=grep\ -nH
+    endif
+    vnoremap <silent> <C-S> :call SearchInFiles() <CR>
+    nnoremap <silent> <C-S> :call SearchInFiles() <CR>
+else
+    throw 'grep executable not found'
+endif
+" }}}
 
-" tab 设置---------------------------------------------------------
+" tab 设置 {{{
 " 左右切换tab
 noremap <C-H> gT
 noremap <C-L> gt
@@ -501,10 +501,9 @@ function! Vim_NeatGuiTabTip()
     return tip
 endfunc
 set guitabtooltip=%{Vim_NeatGuiTabTip()}
+" }}}
 
-"----------------------------------- end --------------------------
-
-" netrw 插件
+" netrw 插件 {{{
 function! Open_Explore_Terminal(where)
     let l:path = expand("%:p:h")
     if l:path == ''
@@ -558,8 +557,10 @@ else
     nnoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
     inoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
 endif
+" }}}
 
-" 状态栏，如果没有powerline 使用自己的配置
+" 状态栏 {{{
+" 如果没有powerline 使用自己的配置
 if isdirectory(expand("~/.vim/plugin/vim-airline"))
     if isdirectory(expand("~/.vim/plugin/vim-airline-themes"))
         if !exists('g:airline_theme')
@@ -580,15 +581,17 @@ else
         set statusline+=%=%-14.(%l,%c%V%)\ %p%%
     endif
 endif
+" }}}
 
-" 翻译快捷键映射为Ctrl-T
+" 在线翻译 {{{
 if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
     vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
     nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
     noremap <leader>yd :Yde<CR>
 end
+" }}}
 
-" FZF 插件配置
+" FZF 插件配置 {{{
 if isdirectory(expand("~/.vim/plugin/fzf.vim"))
     function! s:build_quickfix_list(lines)
       call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
@@ -623,7 +626,9 @@ if isdirectory(expand("~/.vim/plugin/fzf.vim"))
     vnoremap <silent> <C-P> <Esc>:FZF<CR>
     nnoremap <silent> <C-P> <Esc>:FZF<CR>
 end
+" }}}
 
+" 初始化目录 {{{
 function! InitializeDirectories()
     let parent = $HOME . '/.vimtmpdir/'
 
@@ -661,8 +666,12 @@ function! InitializeDirectories()
     endfor
 endfunction
 call InitializeDirectories()
+" }}}
 
+" 主题设置 {{{
 if filereadable(expand("~/.vim/plugin/vim-colors/colors/molokai.vim"))
     colorscheme molokai
 endif
+" }}}
+
 
