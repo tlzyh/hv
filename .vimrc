@@ -289,6 +289,9 @@ function! GetCursorWord()
     return expand("<cword>")
 endfunction
 
+" 搜索相关设置 ------------------------------------------------------
+" 设置使用grep
+set grepprg=grep\ -nH
 " 文件中删除
 silent function! SearchInFiles()
     let str = GetVisualSelection()
@@ -296,17 +299,14 @@ silent function! SearchInFiles()
         let str = GetCursorWord()
     endif
     if strlen(str) > 0
-        execute "Grep -rna \"" . str . "\" " . getcwd()
+        copen
+        execute "AsyncRun grep -rna \"" . str . "\" " . getcwd()
     endif
 endfunction
-if isdirectory(expand("~/.vim/plugin/grep"))
-    vnoremap <silent> <C-S> :call SearchInFiles() <CR>
-    nnoremap <silent> <C-S> :call SearchInFiles() <CR>
-endif
-
+vnoremap <silent> <C-S> :call SearchInFiles() <CR>
+nnoremap <silent> <C-S> :call SearchInFiles() <CR>
 
 " tab 设置---------------------------------------------------------
-
 " 左右切换tab
 noremap <C-H> gT
 noremap <C-L> gt
