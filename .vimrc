@@ -474,7 +474,7 @@ function! Vim_NeatGuiTabLabel()
     let l:bufnr = l:buflist[l:winnr - 1]
     return Vim_NeatBuffer(l:bufnr, 0)
 endfunc
- 
+
 " setup new tabline, just like %M%t in macvim
 set tabline=%!Vim_NeatTabLine()
 set guitablabel=%{Vim_NeatGuiTabLabel()}
