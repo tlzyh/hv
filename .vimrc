@@ -44,11 +44,15 @@ silent function! SwitchMenu()
     endif
 endfunction
 
+" windows 平台设置
 if IsWindows()
     " 隐藏菜单工具栏。开关为F3
     set guioptions-=m
     set guioptions-=T
     noremap <silent> <F3> :call SwitchMenu() <CR>
+
+    " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
+    set winaltkeys=no
 endif
 
 " 编码设置 {{{
@@ -283,17 +287,30 @@ endfunction
 function! GetCursorWord()
     return expand("<cword>")
 endfunction
+
+silent function! ExecuteGrep(str)
+    if strlen(a:str) > 0
+        copen
+        execute "AsyncRun grep -rna \"" . a:str . "\" " . getcwd()
+    endif
+endfunction
+
 " 文件中删除
 silent function! SearchInFiles()
     let str = GetVisualSelection()
     if strlen(str) <= 0
         let str = GetCursorWord()
     endif
-    if strlen(str) > 0
-        copen
-        execute "AsyncRun grep -rna \"" . str . "\" " . getcwd()
-    endif
+    call ExecuteGrep(str)
 endfunction
+
+" 搜索输入的内容
+silent function! SearchInputWord()
+    let word = input("Please enter the word: ")
+    exe "norm! \<Esc><CR>"
+    call ExecuteGrep(word)
+endfunction
+
 if executable('grep')
     " 设置使用grep
     if IsWindows()
@@ -301,6 +318,9 @@ if executable('grep')
     endif
     vnoremap <silent> <C-S> :call SearchInFiles() <CR>
     nnoremap <silent> <C-S> :call SearchInFiles() <CR>
+
+    noremap <silent><M-S> :call SearchInputWord()<CR>
+    inoremap <silent><M-S> <ESC>:call SearchInputWord()<CR>
 else
     throw 'grep executable not found'
 endif
@@ -354,8 +374,6 @@ if IsGui()
         noremap <silent><D-O> :browse tabnew<CR>
         inoremap <silent><D-O> <ESC>:browse tabnew<CR>
     else
-        " 禁用菜单的alt快捷键
-        set winaltkeys=no
         " set macmeta
         noremap <silent><C-TAB> :call SwitchToPreTab()<CR>
         inoremap <silent><C-TAB> <ESC>:call SwitchToPreTab()<CR>
