@@ -319,8 +319,8 @@ if executable('grep')
     vnoremap <silent> <C-S> :call SearchInFiles() <CR>
     nnoremap <silent> <C-S> :call SearchInFiles() <CR>
 
-    noremap <silent><M-S> :call SearchInputWord()<CR>
-    inoremap <silent><M-S> <ESC>:call SearchInputWord()<CR>
+    noremap <silent><M-1> :call SearchInputWord()<CR>
+    inoremap <silent><M-1> <ESC>:call SearchInputWord()<CR>
 else
     throw 'grep executable not found'
 endif
@@ -377,7 +377,7 @@ if IsGui()
         " set macmeta
         noremap <silent><C-TAB> :call SwitchToPreTab()<CR>
         inoremap <silent><C-TAB> <ESC>:call SwitchToPreTab()<CR>
-        noremap <silent><M-1> :tabn 1<CR>
+        " noremap <silent><M-1> :tabn 1<CR>
         noremap <silent><M-2> :tabn 2<CR>
         noremap <silent><M-3> :tabn 3<CR>
         noremap <silent><M-4> :tabn 4<CR>
@@ -519,7 +519,7 @@ set guitabtooltip=%{GetGuiTabTip()}
 " }}}
 
 " netrw 插件 {{{
-function! Open_Explore_Terminal(where)
+function! OpenExploreTerminal(where)
     let l:path = expand("%:p:h")
     if l:path == ''
         let l:path = getcwd()
@@ -535,10 +535,10 @@ function! Open_Explore_Terminal(where)
     endif
 endfunc
 
-function! s:Filter_Push(desc, wildcard)
+function! s:FilterPush(desc, wildcard)
     let g:browsefilter .= a:desc . " (" . a:wildcard . ")\t" . a:wildcard . "\n"
 endfunc
-function! Open_Browse_GUI(where)
+function! OpenBrowseGUI(where)
     let l:path = expand("%:p:h")
     if l:path == '' | let l:path = getcwd() | endif
     if exists('g:browsefilter') && exists('b:browsefilter')
@@ -557,20 +557,20 @@ endfunc
 
 if IsGui()
     let g:browsefilter = ''
-    call s:Filter_Push("All Files", "*")
-    call s:Filter_Push("C/C++/Object-C", "*.c;*.cpp;*.cc;*.h;*.hh;*.hpp;*.m;*.mm")
-    call s:Filter_Push("Python", "*.py;*.pyw")
-    call s:Filter_Push("Text", "*.txt")
-    call s:Filter_Push("Lua", "*.lua")
-    call s:Filter_Push("Vim Script", "*.vim")
+    call s:FilterPush("All Files", "*")
+    call s:FilterPush("C/C++/Object-C", "*.c;*.cpp;*.cc;*.h;*.hh;*.hpp;*.m;*.mm")
+    call s:FilterPush("Python", "*.py;*.pyw")
+    call s:FilterPush("Text", "*.txt")
+    call s:FilterPush("Lua", "*.lua")
+    call s:FilterPush("Vim Script", "*.vim")
 
-    vnoremap <silent> <C-O> :call Open_Browse_GUI(2) <CR>
-    nnoremap <silent> <C-O> :call Open_Browse_GUI(2) <CR>
-    inoremap <silent> <C-O> :call Open_Browse_GUI(2) <CR>
+    vnoremap <silent> <C-O> :call OpenBrowseGUI(2) <CR>
+    nnoremap <silent> <C-O> :call OpenBrowseGUI(2) <CR>
+    inoremap <silent> <C-O> :call OpenBrowseGUI(2) <CR>
 else
-    vnoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
-    nnoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
-    inoremap <silent> <C-O> :call Open_Explore_Terminal(2) <CR>
+    vnoremap <silent> <C-O> :call OpenExploreTerminal(2) <CR>
+    nnoremap <silent> <C-O> :call OpenExploreTerminal(2) <CR>
+    inoremap <silent> <C-O> :call OpenExploreTerminal(2) <CR>
 endif
 " }}}
 

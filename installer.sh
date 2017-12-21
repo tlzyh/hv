@@ -1,5 +1,5 @@
 # hv installer on *nix
-# Last Change: 2016 Dec 31
+# Last Change: 2017/11/21
 # Author: YangHui <tlz.yh@outlook.com>
 # Maintainer: YangHui <tlz.yh@outlook.com>
 # License: This file is placed in the public domain.
@@ -9,7 +9,7 @@ app_name='hv'
 [ -z "$REPO_BRANCH" ] && REPO_BRANCH='master'
 debug_mode='0'
 fork_maintainer='0'
-[ -z "$VUNDLE_URI" ] && VUNDLE_URI="https://github.com/gmarik/vundle.git"
+[ -z "$VIM_PLUG_URI" ] && VIM_PLUG_URI="https://github.com/junegunn/vim-plug.git"
 
 msg() {
     printf '%b\n' "$1" >&2
@@ -99,26 +99,32 @@ create_symlinks() {
     local target_path="$2"
     lnif "$source_path/.vimrc"         "$target_path/.vimrc"
     lnif "$source_path/.vim"           "$target_path/.vim"
-    if program_exists "nvim"; then
-        lnif "$source_path/.vim"       "$target_path/.config/nvim"
-        lnif "$source_path/.vimrc"     "$target_path/.config/nvim/init.vim"
-    fi
     ret="$?"
     success "Setting up vim symlinks."
     debug
 }
 
-setup_vundle() {
+setup_vim_plug() {
+    # copy plug.vim to autoload directory
+    if [[ ! -d "$HOME/vimfiles/autoload" ]]; then
+        mkdir -p "$HOME/vimfiles/autoload"
+    fi
+    if [[ ! -f "$HOME/.vim/plugin/vim-plug/plug.vim" ]]; then
+        error "Can not find plug.vim"
+        return
+    else
+        cp -f "$HOME/.vim/plugin/vim-plug/plug.vim" "$HOME/vimfiles/autoload"
+    fi
+
     local system_shell="$SHELL"
     export SHELL='/bin/sh'
     vim \
         -u "$1" \
         "+set nomore" \
-        "+BundleInstall!" \
-        "+BundleClean" \
+        "+PlugInstall" \
         "+qall"
     export SHELL="$system_shell"
-    success "Now updating/installing plugins using Vundle"
+    success "Now updating/installing plugins using Vim-plug"
     debug
 }
 
@@ -138,12 +144,12 @@ sync_repo       "$APP_PATH" \
 create_symlinks "$APP_PATH" \
                 "$HOME"
 
-sync_repo       "$HOME/.vim/bundle/vundle" \
-                "$VUNDLE_URI" \
+sync_repo       "$HOME/.vim/plugin/vim-plug" \
+                "$VIM_PLUG_URI" \
                 "master" \
-                "vundle"
+                "vim-plug"
 
-setup_vundle    "$APP_PATH/.vimrc.bundles.default"
+setup_vim_plug    "$APP_PATH/.vimrc"
 
 msg             "\nThanks for installing $app_name."
 msg             "© `date +%Y` http://tlzyh.com/"
