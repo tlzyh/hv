@@ -106,14 +106,14 @@ create_symlinks() {
 
 setup_vim_plug() {
     # copy plug.vim to autoload directory
-    if [[ ! -d "$HOME/vimfiles/autoload" ]]; then
-        mkdir -p "$HOME/vimfiles/autoload"
+    if [[ ! -d "$HOME/.vim/autoload" ]]; then
+        mkdir -p "$HOME/.vim/autoload"
     fi
     if [[ ! -f "$HOME/.vim/plugin/vim-plug/plug.vim" ]]; then
         error "Can not find plug.vim"
         return
     else
-        cp -f "$HOME/.vim/plugin/vim-plug/plug.vim" "$HOME/vimfiles/autoload"
+        cp -f "$HOME/.vim/plugin/vim-plug/plug.vim" "$HOME/.vim/autoload"
     fi
 
     local system_shell="$SHELL"
