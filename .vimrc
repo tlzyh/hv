@@ -208,7 +208,8 @@ if IsGui()
     if IsLinux()
         set guifont=Andale\ Mono\ Regular\ 12,Menlo\ Regular\ 11,Consolas\ Regular\ 12,Courier\ New\ Regular\ 14
     elseif IsOSX()
-        set guifont=Andale\ Mono\ Regular:h12,Menlo\ Regular:h11,Consolas\ Regular:h12,Courier\ New\ Regular:h14
+        " set guifont=Andale\ Mono\ Regular:h12,Menlo\ Regular:h11,Consolas\ Regular:h12,Courier\ New\ Regular:h14
+        set guifont=Courier\ New\ Regular:h14
     elseif IsWindows()
         " set guifont=,Courier_New:h10
         set guifont=Courier_New:h11,Andale_Mono:h11,Menlo:h10,Consolas:h10
@@ -576,8 +577,8 @@ endif
 
 " 状态栏 {{{
 " 如果没有powerline 使用自己的配置
-if isdirectory(expand("~/.vim/plugin/vim-airline"))
-    if isdirectory(expand("~/.vim/plugin/vim-airline-themes"))
+if isdirectory(expand("~/.vim/plugins/vim-airline"))
+    if isdirectory(expand("~/.vim/plugins/vim-airline-themes"))
         if !exists('g:airline_theme')
             let g:airline_theme = 'solarized'
         endif
@@ -599,7 +600,7 @@ endif
 " }}}
 
 " 在线翻译 {{{
-if isdirectory(expand("~/.vim/plugin/vim-youdao-translater"))
+if isdirectory(expand("~/.vim/plugins/vim-youdao-translater"))
     vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
     nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
     noremap <leader>yd :Yde<CR>
@@ -607,7 +608,7 @@ end
 " }}}
 
 " FZF 插件配置 {{{
-if isdirectory(expand("~/.vim/plugin/fzf.vim"))
+if isdirectory(expand("~/.vim/plugins/fzf.vim"))
     function! s:build_quickfix_list(lines)
       call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
       copen
@@ -684,7 +685,7 @@ call InitializeDirectories()
 " }}}
 
 " 主题设置 {{{
-if filereadable(expand("~/.vim/plugin/vim-colors/colors/molokai.vim"))
+if filereadable(expand("~/.vim/plugins/vim-colors/colors/molokai.vim"))
     colorscheme molokai
 endif
 " }}}
