@@ -1,13 +1,47 @@
 REM hv installer on Windows
-REM Last Change: 2017/11/02
+REM Last Change: 2017/12/26
 REM Author: YangHui <tlz.yh@outlook.com>
 REM Maintainer: YangHui <tlz.yh@outlook.com>
 REM License: This file is placed in the public domain.
+
+@echo off
 
 @if not exist "%HOME%" @set HOME=%HOMEDRIVE%%HOMEPATH%
 @if not exist "%HOME%" @set HOME=%USERPROFILE%
 
 @set APP_PATH=%HOME%\.hv
+
+@set VIM_BIN_TMP_DIR=%HOME%\.hv_vim_bin_tmp
+@set VIM_BIN_DIR_NAME="vim-8.0.1240-x64"
+
+if exist "%PROGRAMFILES%" (
+    @set VIM_INSTALL_DIR=%PROGRAMFILES%
+)
+if not exist "%VIM_INSTALL_DIR%" (
+    @set VIM_INSTALL_DIR=%PROGRAMFILES(X86)%
+)
+if not exist "%VIM_INSTALL_DIR%" (
+    echo "Not found install directory"
+    pause
+    exit
+)
+
+if not exist "%VIM_INSTALL_DIR%\%VIM_BIN_DIR_NAME%" (
+    REM get from github
+    if not exist "%VIM_BIN_TMP_DIR%" (
+        call git clone -b master git@github.com:tlzyh/vim-bin.git "%APP_PATH%"
+    ) else (
+        @set ORIGINAL_DIR=%CD%
+        echo updating vim-bin...
+        chdir /d "%VIM_BIN_TMP_DIR%"
+        call git pull
+        chdir /d "%ORIGINAL_DIR%"
+        call cd "%VIM_BIN_TMP_DIR%"
+    )
+    REM copy into install directory
+)
+
+
 if not exist "%APP_PATH%" (
     call git clone -b master git@github.com:tlzyh/hv.git "%APP_PATH%"
 ) else (
