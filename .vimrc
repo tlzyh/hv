@@ -77,7 +77,7 @@ endif
 "}}}
 
 " 设置 vim-plug {{{
-call plug#begin('~/.vim/plugin')
+call plug#begin('~/.vim/plugins')
 " color scheme
 Plug 'tlzyh/vim-colors'
 
