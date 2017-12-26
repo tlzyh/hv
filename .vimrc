@@ -55,10 +55,6 @@ if IsWindows()
     set winaltkeys=no
 endif
 
-if IsOSX()
-    set runtimepath+=~/vimfiles
-endif
-
 " 编码设置 {{{
 if has("multi_byte")
     " 全局编码
