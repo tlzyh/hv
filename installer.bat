@@ -57,6 +57,16 @@ if not exist "%APP_PATH%" (
     call cd "%APP_PATH%"
 )
 
+if exist "%HOME%\.vimrc" (
+    del "%HOME%\.vimrc"
+)
+if exist "%HOME%\_vimrc" (
+    del "%HOME%\_vimrc"
+)
+if exist "%HOME%\.vim" (
+    del "%HOME%\.vim"
+)
+
 REM create vim file link
 call mklink "%HOME%\.vimrc" "%APP_PATH%\.vimrc"
 call mklink "%HOME%\_vimrc" "%APP_PATH%\.vimrc"
