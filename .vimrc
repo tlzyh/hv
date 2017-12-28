@@ -668,25 +668,27 @@ augroup END
 " }}}
 
 " 快速运行 {{{
-augroup quick_async_run
-    autocmd!
-    autocmd User AsyncRunStart call asyncrun#quickfix_toggle(15, 1)
-augroup END
-function! QuickAsyncRun()
-    exec 'w'
-    if &filetype == 'c'
-        exec "AsyncRun! gcc % -o %<; time ./%<"
-    elseif &filetype == 'cpp'
-       exec "AsyncRun! g++ -std=c++11 % -o %<; time ./%<"
-    elseif &filetype == 'java'
-       exec "AsyncRun! javac %; time java %<"
-    elseif &filetype == 'sh'
-       exec "AsyncRun! time bash %"
-    elseif &filetype == 'python'
-       exec "AsyncRun! time python %"
-    endif
-endfunction
-nnoremap <leader>r :call <SID>QuickAsyncRun()<CR>
+if isdirectory(expand("~/.vim/plugins/asyncrun.vim"))
+    augroup quick_async_run
+        autocmd!
+        autocmd User AsyncRunStart call asyncrun#quickfix_toggle(15, 1)
+    augroup END
+    function! QuickAsyncRun()
+        exec 'w'
+        if &filetype == 'c'
+            exec "AsyncRun! gcc % -o %<; time ./%<"
+        elseif &filetype == 'cpp'
+            exec "AsyncRun! g++ -std=c++11 % -o %<; time ./%<"
+        elseif &filetype == 'java'
+            exec "AsyncRun! javac %; time java %<"
+        elseif &filetype == 'sh'
+            exec "AsyncRun! time bash %"
+        elseif &filetype == 'python'
+            exec "AsyncRun! time python %"
+        endif
+    endfunction
+    nnoremap <leader>r :call <SID>QuickAsyncRun()<CR>
+endif
 " }}}
 
 " 初始化目录 {{{
