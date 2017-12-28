@@ -103,7 +103,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'skywind3000/asyncrun.vim'
 
 Plug 'w0rp/ale'
-Plug 'python-mode/python-mode'
+" Plug 'python-mode/python-mode'
 
 call plug#end()
 " End vim-plug }}}
