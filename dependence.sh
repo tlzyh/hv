@@ -8,3 +8,4 @@
 pip install yapf
 pip install futures
 pip install requests
+pip install jedi

@@ -105,6 +105,8 @@ Plug 'skywind3000/asyncrun.vim'
 Plug 'w0rp/ale'
 Plug 'python-mode/python-mode'
 
+Plug 'davidhalter/jedi-vim'
+
 call plug#end()
 " End vim-plug }}}
 
@@ -645,6 +647,18 @@ if isdirectory(expand("~/.vim/plugins/fzf.vim"))
     nnoremap <silent> <C-P> <Esc>:FZF<CR>
 end
 " }}}
+
+" python-mode 配置
+if isdirectory(expand("~/.vim/plugins/python-mode"))
+  let g:pymode_lint_checkers = ['pyflakes']
+  let g:pymode_trim_whitespaces = 0
+  let g:pymode_options = 0
+  let g:pymode_rope = 0
+  let g:pymode_indent = 1
+  let g:pymode_folding = 0
+  let g:pymode_options_colorcolumn = 1
+  let g:pymode_breakpoint_bind = '<leader>br'
+end
 
 " Python 格式化 {{{
 augroup python_format

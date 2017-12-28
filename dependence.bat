@@ -10,4 +10,4 @@ REM Note: Please run this script as Administrator
 call pip install yapf
 call pip install futures
 call pip install requests
-
+call pip install jedi
