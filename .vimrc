@@ -102,7 +102,9 @@ Plug 'vim-airline/vim-airline-themes'
 
 Plug 'skywind3000/asyncrun.vim'
 
-" Plug 'liuchengxu/space-vim-dark'
+Plug 'w0rp/ale'
+Plug 'python-mode/python-mode'
+
 call plug#end()
 " End vim-plug }}}
 
@@ -132,15 +134,15 @@ set iskeyword-=#
 set iskeyword-=-
 
 " 切换buffer的时候，光标回到之前的位置
-function! ResCur()
+function! ResetCursor()
     if line("'\"") <= line("$")
         silent! normal! g`"
         return 1
     endif
 endfunction
-augroup resCur
+augroup reset_cursor
     autocmd!
-    autocmd BufWinEnter * call ResCur()
+    autocmd BufWinEnter * call ResetCursor()
 augroup END
 
 set backup
@@ -642,6 +644,35 @@ if isdirectory(expand("~/.vim/plugins/fzf.vim"))
     vnoremap <silent> <C-P> <Esc>:FZF<CR>
     nnoremap <silent> <C-P> <Esc>:FZF<CR>
 end
+" }}}
+
+" Python 格式化 {{{
+augroup python_format
+    autocmd!
+    autocmd FileType python nnoremap <leader>= :0,$!yapf<CR>
+augroup END
+" }}}
+
+" 快速运行 {{{
+augroup quick_async_run
+    autocmd!
+    autocmd User AsyncRunStart call asyncrun#quickfix_toggle(15, 1)
+augroup END
+function! QuickAsyncRun()
+    exec 'w'
+    if &filetype == 'c'
+        exec "AsyncRun! gcc % -o %<; time ./%<"
+    elseif &filetype == 'cpp'
+       exec "AsyncRun! g++ -std=c++11 % -o %<; time ./%<"
+    elseif &filetype == 'java'
+       exec "AsyncRun! javac %; time java %<"
+    elseif &filetype == 'sh'
+       exec "AsyncRun! time bash %"
+    elseif &filetype == 'python'
+       exec "AsyncRun! time python %"
+    endif
+endfunction
+nnoremap <leader>r :call <SID>QuickAsyncRun()<CR>
 " }}}
 
 " 初始化目录 {{{
