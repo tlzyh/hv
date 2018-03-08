@@ -26,6 +26,7 @@ function! IsGui()
 endfunction
 " }}}
 
+" 通用设置 {{{
 set nocompatible
 
 if !IsWindows()
@@ -54,6 +55,7 @@ if IsWindows()
     " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
     set winaltkeys=no
 endif
+" }}}
 
 " 编码设置 {{{
 if has("multi_byte")
@@ -79,12 +81,6 @@ Plug 'tlzyh/vim-colors'
 
 " 在线翻译
 Plug 'tlzyh/vim-youdao-translater'
-
-" Lua
-Plug 'xolox/vim-misc'
-Plug 'xolox/vim-lua-ftplugin'
-
-Plug 'xolox/vim-shell'
 
 " 高亮行
 Plug 'vim-scripts/Visual-Mark'
@@ -230,7 +226,6 @@ nnoremap <leader>ev :tabnew $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
 " }}}
 
-
 " 目录切换设置 {{{
 " 第一次打开的目录作为工程目录
 silent function! GuiEnterInit()
@@ -258,7 +253,7 @@ vnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 " }}}
 
-" quickfix 配置
+" quickfix 配置 {{{
 " silent function! OpenOrCloseQuickfix()
 "     " 垂直打开，去掉前缀 vert为水平打开
 "     " TODO
@@ -268,7 +263,7 @@ nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 " nnoremap <silent> <C-Q> <Esc>:call OpenOrCloseQuickfix() <CR>
 " 设置quickfix 打开文件到新的tab
 set switchbuf+=useopen,usetab,newtab
-
+" }}}
 
 " 文件折叠 {{{
 augroup filetype_vim
@@ -648,7 +643,7 @@ if isdirectory(expand("~/.vim/plugins/fzf.vim"))
 end
 " }}}
 
-" python-mode 配置
+" python-mode 配置 {{{
 if isdirectory(expand("~/.vim/plugins/python-mode"))
   let g:pymode_lint_checkers = ['pyflakes']
   let g:pymode_trim_whitespaces = 0
@@ -659,6 +654,7 @@ if isdirectory(expand("~/.vim/plugins/python-mode"))
   let g:pymode_options_colorcolumn = 1
   let g:pymode_breakpoint_bind = '<leader>br'
 end
+" }}}
 
 " Python 格式化 {{{
 augroup python_format
@@ -737,4 +733,23 @@ if filereadable(expand("~/.vim/plugins/vim-colors/colors/molokai.vim"))
 endif
 " }}}
 
+" Lua 语法检测 {{{
 
+function! CheckLuaSyntax()
+    if !executable('luac')
+        echo "ERROR: Can not find luac executable file"
+        return
+    endif
+    " let l:name = expand("%:p")
+    let l:name = expand("%")
+    let l:error_str = call('system', ['luac -p ' . l:name])
+    if l:error_str != ""
+        echo l:error_str
+    endif
+endfunction
+
+augroup lua_file_syntax_check
+  autocmd!
+  autocmd BufWritePost * call CheckLuaSyntax()
+augroup END
+" }}}
