@@ -85,6 +85,10 @@ Plug 'tlzyh/vim-youdao-translater'
 " 高亮行
 Plug 'vim-scripts/Visual-Mark'
 
+Plug 'xolox/vim-misc'
+Plug 'xolox/vim-lua-ftplugin'
+Plug 'xolox/vim-shell'
+
 " 搜索
 Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
@@ -742,7 +746,11 @@ function! CheckLuaSyntax()
     endif
     " let l:name = expand("%:p")
     let l:name = expand("%")
-    let l:error_str = call('system', ['luac -p ' . l:name])
+    if IsWindows()
+        let l:error_str = call('system', ['luac -p ' . l:name])
+    else
+    endif
+
     if l:error_str != ""
         echo l:error_str
     endif
