@@ -1,8 +1,20 @@
 " vim configuration
-" Last Change: 2017/11/16
+" Last Change: 2018/03/19
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: This file is placed in the public domain.
+
+" {{{ 运行环境检查
+if !has("signs")
+    echoerr "Vim 不支持 sign"
+    finish
+endif
+
+if !has("python") && !has("python3")
+    echoerr "Vim 不支持 python"
+    finish
+endif
+" }}}
 
 " 公共函数定义 {{{
 " 是否是macOs
@@ -23,6 +35,45 @@ endfunction
 " 是否是GUI版本
 function! IsGui()
     return has('gui_running')
+endfunction
+
+" 获取Visual模式下选中的文本
+function! GetVisualSelection()
+    try
+        let a_save = @a
+        normal! gv"ay
+        return @a
+    finally
+        let @a = a_save
+    endtry
+endfunction
+
+" 获取光标处的文本
+function! GetCursorWord()
+    return expand("<cword>")
+endfunction
+
+" 获取vim 命令执行之后的返回值
+function! GetVimCmdOutput(cmd)
+  let old_lang = v:lang
+  exec ":lan mes en_US"
+  let v:errmsg = ''
+  let output   = ''
+  let _z       = @z
+  try
+    redir @z
+    silent exe a:cmd
+  catch /.*/
+    let v:errmsg = substitute(v:exception, '^[^:]\+:', '', '')
+  finally
+    redir END
+    if v:errmsg == ''
+      let output = @z
+    endif
+    let @z = _z
+  endtry
+  exec ":lan mes " . old_lang
+  return output
 endfunction
 " }}}
 
@@ -47,11 +98,10 @@ endfunction
 
 " windows 平台设置
 if IsWindows()
-    " 隐藏菜单工具栏。开关为F3
+    " 隐藏菜单工具栏
     set guioptions-=m
     set guioptions-=T
-    noremap <silent> <F3> :call SwitchMenu() <CR>
-
+    noremap <silent> mn :call SwitchMenu() <CR>
     " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
     set winaltkeys=no
 endif
@@ -79,22 +129,12 @@ call plug#begin('~/.vim/plugins')
 " color scheme
 Plug 'tlzyh/vim-colors'
 
-" 在线翻译
-Plug 'tlzyh/vim-youdao-translater'
-
-" 高亮行
-Plug 'vim-scripts/Visual-Mark'
-
 Plug 'xolox/vim-misc'
-Plug 'xolox/vim-lua-ftplugin'
 Plug 'xolox/vim-shell'
 
 " 搜索
 Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
-
-" 内容查找
-Plug 'tlzyh/grep'
 
 " 状态栏
 Plug 'vim-airline/vim-airline'
@@ -277,21 +317,6 @@ augroup END
 " }}}
 
 " 文件内容搜索 {{{
-" 获取选中的文字
-function! GetVisualSelection()
-    try
-        let a_save = @a
-        normal! gv"ay
-        return @a
-    finally
-        let @a = a_save
-    endtry
-endfunction
-" 获取光标位置字符
-function! GetCursorWord()
-    return expand("<cword>")
-endfunction
-
 silent function! ExecuteGrep(str)
     if strlen(a:str) > 0
         copen
@@ -603,11 +628,83 @@ endif
 " }}}
 
 " 在线翻译 {{{
-if isdirectory(expand("~/.vim/plugins/vim-youdao-translater"))
-    vnoremap <silent> <C-T> <Esc>:Ydv<CR> 
-    nnoremap <silent> <C-T> <Esc>:Ydc<CR> 
-    noremap <leader>yd :Yde<CR>
-end
+python << EOF
+import vim,requests,collections,xml.etree.ElementTree as ET
+import socket
+# -*- coding: utf-8 -*-
+WARN_NOT_FIND = " 找不到该单词的释义"
+ERROR_QUERY = " 有道翻译查询出错!"
+REMOTE_SERVER = "www.baidu.com"
+INVALID_NETWORKING = "网络不可用"
+def is_connected():
+    try:
+        host = socket.gethostbyname(REMOTE_SERVER)
+        socket.create_connection((host, 80), 2)
+        return True
+    except:
+        pass
+    return False
+
+def get_word_info(word):
+    if not is_connected():
+        return INVALID_NETWORKING.decode('utf-8');
+    if not word:
+        return ''
+    r = requests.get("http://dict.youdao.com" + "/fsearch?q=" + word)
+    if r.status_code == 200:
+        doc = ET.fromstring(r.content)
+        info = collections.defaultdict(list)
+        if not len(doc.findall(".//content")):
+            return WARN_NOT_FIND.decode('utf-8')
+
+        for el in doc.findall(".//"):
+            if el.tag in ('return-phrase','phonetic-symbol'):
+                if el.text:
+                    info[el.tag].append(el.text.encode("utf-8"))
+            elif el.tag in ('content','value'):
+                if el.text:
+                    info[el.tag].append(el.text.encode("utf-8"))
+
+        for k,v in info.items():
+            info[k] = ' | '.join(v) if k == "content" else ' '.join(v)
+
+        tpl = ' %(return-phrase)s'
+        if info["phonetic-symbol"]:
+            tpl = tpl + ' [%(phonetic-symbol)s]'
+        tpl = tpl +' %(content)s'
+
+        return tpl % info
+
+    else:
+        return  ERROR_QUERY.decode('utf-8')
+
+def translate_visual_selection(word):
+    word = word.decode('utf-8')
+    info = get_word_info( word )
+    vim.command('echo "'+ info +'"')
+EOF
+
+function! YoudaoVisualTranslate()
+    python translate_visual_selection(vim.eval("GetVisualSelection()"))
+endfunction
+
+function! YoudaoCursorTranslate()
+    python translate_visual_selection(vim.eval("GetCursorWord()"))
+endfunction
+
+function! YoudaoEnterTranslate()
+    let word = input("Please enter the word: ")
+    exe "norm! \<Esc><CR>"
+    python translate_visual_selection(vim.eval("word"))
+endfunction
+
+command! Ydv :call YoudaoVisualTranslate()
+command! Ydc :call YoudaoCursorTranslate()
+command! Yde :call YoudaoEnterTranslate()
+
+vnoremap <silent> <C-T> <Esc>:Ydv<CR>
+nnoremap <silent> <C-T> <Esc>:Ydc<CR>
+noremap <leader>yd :Yde<CR>
 " }}}
 
 " FZF 插件配置 {{{
@@ -738,7 +835,6 @@ endif
 " }}}
 
 " Lua 语法检测 {{{
-
 function! CheckLuaSyntax()
     if !executable('luac')
         echo "ERROR: Can not find luac executable file"
@@ -749,15 +845,266 @@ function! CheckLuaSyntax()
     if IsWindows()
         let l:error_str = call('system', ['luac -p ' . l:name])
     else
+        echo 'not support on this platform'
     endif
 
     if l:error_str != ""
         echo l:error_str
     endif
 endfunction
+command! -bar LuaCheck call CheckLuaSyntax()
+" }}}
 
-augroup lua_file_syntax_check
+" {{{ BufWritePost 主函数
+function! OnBufWritePost()
+    if &filetype == 'lua'
+        call CheckLuaSyntax()
+    endif
+endfunction
+augroup buf_write_post
   autocmd!
-  autocmd BufWritePost * call CheckLuaSyntax()
+  autocmd BufWritePost * call OnBufWritePost()
 augroup END
+" }}}
+
+" {{{ 高亮URL
+function! HighlightURL()
+    let command = 'syntax match %s /%s/ contained containedin=.*Comment.*,.*String.*'
+    let urlgroup = 'CommentURL'
+    let regx = '\<\w\{3,}://\(\(\S\&[^"]\)*\w\)\+[/?#]\?'
+    execute printf(command, urlgroup, escape(regx, '/'))
+    execute 'highlight def link' urlgroup 'Underlined'
+endfunction
+" }}}
+
+" {{{ 高亮Email
+function! HighlightEmail()
+    let command = 'syntax match %s /%s/ contained containedin=.*Comment.*,.*String.*'
+    let emailgroup = 'CommentEmail'
+    let regx = '\<\w[^@ \t\r<>]*\w@\w[^@ \t\r<>]\+\w\>'
+    execute printf(command, emailgroup, escape(regx, '/'))
+    execute 'highlight def link' emailgroup 'Underlined'
+endfunction
+" }}}
+
+" {{{ BufNew BufRead Syntax 回调主函数
+function! OnBufNewBufReadSyntax()
+    call HighlightURL()
+    call HighlightEmail()
+endfunction
+augroup bufnew_bufread_syntax
+  autocmd! BufNew,BufRead,Syntax * call OnBufNewBufReadSyntax()
+augroup END
+" }}}
+
+" {{{ 高亮标记行
+" 颜色配置
+if &bg == "dark"
+    highlight SignColor ctermfg=white ctermbg=blue guifg=white guibg=RoyalBlue3
+else
+    highlight SignColor ctermbg=white ctermfg=blue guibg=grey guifg=RoyalBlue3
+endif
+
+" 在当前行添加标记
+function! PlaceSignOnCurrentLine()
+    if !exists("b:Vm_sign_number")
+        let b:Vm_sign_number = 1
+    endif
+    let ln = line(".")
+    exe 'sign define SignSymbol linehl=SignColor texthl=SignColor'
+    exe 'sign place ' . b:Vm_sign_number . ' line=' . ln . ' name=SignSymbol buffer=' . winbufnr(0)
+    let b:Vm_sign_number = b:Vm_sign_number + 1
+endfunction
+
+" 移除指定id的标记
+function! RemoveSign(sign_id)
+    silent! exe 'sign unplace ' . a:sign_id . ' buffer=' . winbufnr(0)
+endfunction
+
+" 移除所有标记
+function! RemoveAllSigns()
+    silent! exe 'sign unplace *'
+endfunction
+
+" 获取指定行号的标记id
+" 如果该行有标记那么返回标记id，如果没有标记则返回-1
+function! GetSignIdFromLine(line_number)
+    let sign_list = GetVimCmdOutput('sign place buffer=' . winbufnr(0))
+    let line_str_index = match(sign_list, "line=" . a:line_number, 0)
+    if line_str_index < 0
+        return -1
+    endif
+
+    let id_str_index = matchend(sign_list, "id=", line_str_index)
+    if id_str_index < 0
+        return -1
+    endif
+
+    let space_index = match(sign_list, " ", id_str_index)
+    let id = strpart(sign_list, id_str_index, space_index - id_str_index)
+    return id
+endfunction
+
+" 当前行添加或者移除标记
+function! ToggleSign()
+    let curr_line_number = line(".")
+    let sign_id = GetSignIdFromLine(curr_line_number)
+
+    if sign_id < 0
+        let is_on = 0
+    else
+        let is_on = 1
+    endif
+
+    if is_on != 0
+        call RemoveSign(sign_id)
+    else
+        call PlaceSignOnCurrentLine()
+    endif
+endfunction
+
+" 从 sign place命令中返回的字符串中截取行号
+function! GetLineNumberFromSignInfoString(string)
+    let line_str_index = match(a:string, "line=", b:Vm_start_from)
+    if line_str_index <= 0
+        return -1
+    endif
+
+    let equal_sign_index = match(a:string, "=", line_str_index)
+    let space_index      = match(a:string, " ", equal_sign_index)
+    let line_number      = strpart(a:string, equal_sign_index + 1, space_index - equal_sign_index - 1)
+    let b:Vm_start_from  = space_index
+    return line_number + 0
+endfunction
+
+" 获取相对当前行的下一个有标记的行的行号
+function! GetNextSignLine(curr_line_number)
+    let b:Vm_start_from = 1
+    let sign_list = GetVimCmdOutput('sign place buffer=' . winbufnr(0))
+
+    let curr_line_number = a:curr_line_number
+    let line_number = 1
+    let is_no_sign  = 1
+    let min_line_number = -1
+    let min_line_number_diff = 0
+
+    while 1
+        let line_number = GetLineNumberFromSignInfoString(sign_list)
+        if line_number < 0
+            break
+        endif
+
+        if is_no_sign != 0
+            let min_line_number = line_number
+        elseif line_number < min_line_number
+            let min_line_number = line_number
+        endif
+        let is_no_sign = 0
+
+        let tmp_diff = line_number - curr_line_number
+        if tmp_diff > 0
+            if min_line_number_diff > 0
+                if tmp_diff < min_line_number_diff
+                    let min_line_number_diff = tmp_diff
+                endif
+            else
+                let min_line_number_diff = tmp_diff
+            endif
+        endif
+    endwhile
+
+    let line_number = curr_line_number + min_line_number_diff
+    if is_no_sign != 0 || min_line_number_diff <= 0
+        let line_number = min_line_number
+    endif
+
+    return line_number
+endfunction
+
+" 获取相对当前行的上一个有标记的行的行号
+function! GetPrevSignLine(curr_line_number)
+    let b:Vm_start_from = 1
+    let sign_list = GetVimCmdOutput('sign place buffer=' . winbufnr(0))
+    let curr_line_number = a:curr_line_number
+    let line_number = 1
+    let is_no_sign  = 1
+    let max_line_number = -1
+    let max_line_number_diff = 0
+
+    while 1
+        let line_number = GetLineNumberFromSignInfoString(sign_list)
+        if line_number < 0
+            break
+        endif
+
+        if is_no_sign != 0
+            let max_line_number = line_number
+        elseif line_number > max_line_number 
+            let max_line_number = line_number
+        endif
+        let is_no_sign = 0
+
+        let tmp_diff = curr_line_number - line_number
+        if tmp_diff > 0
+            if max_line_number_diff > 0 
+                if tmp_diff < max_line_number_diff 
+                    let max_line_number_diff = tmp_diff
+                endif
+            else
+                let max_line_number_diff = tmp_diff
+            endif
+        endif
+    endwhile
+
+    let line_number = curr_line_number - max_line_number_diff 
+    if is_no_sign != 0 || max_line_number_diff <= 0
+        let line_number = max_line_number 
+    endif
+
+    return line_number
+endfunction
+
+" 下一个标记
+function! GotoNextSign()
+    let curr_line_number      = line(".")
+    let next_sign_line_number = GetNextSignLine(curr_line_number)
+    if next_sign_line_number >= 0
+        exe ":" . next_sign_line_number
+    endif
+endfunction
+
+" 上一个标记
+function! GotoPrevSign()
+    let curr_line_number      = line(".")
+    let prev_sign_line_number = GetPrevSignLine(curr_line_number)
+    if prev_sign_line_number >= 0
+        exe prev_sign_line_number 
+    endif
+endfunction
+
+" 命令映射
+map <silent> <unique> mm :call ToggleSign()<CR>
+map <silent> <unique> nm :call GotoNextSign()<CR>
+map <silent> <unique> pm :call GotoPrevSign()<CR>
+map <silent> <unique> cm :call RemoveAllSigns()<CR>
+" }}}
+
+" {{{ 打开当前文件所在的文件夹，并且选中
+" os.system(r'explorer /select,C:\Users\Administrator\Desktop\tmp.lua')
+python << EOF
+# -*- coding: utf-8 -*-
+import os
+import sys
+import vim
+def open_file_location(file_path):
+    if sys.platform == 'win32':
+        cmd = "r\'explorer /select,%s\'"%(file_path)
+        os.system(cmd)
+        # os.system(r'explorer /select,C:\Users\Administrator\Desktop\tmp.lua')
+EOF
+function! OpenCurrentFileLocation()
+    let path = expand('%:p')
+    " python open_file_location(vim.eval('path'))
+endfunction
+command! Ocfl :call OpenCurrentFileLocation()
 " }}}
