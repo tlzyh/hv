@@ -104,6 +104,11 @@ if IsWindows()
     noremap <silent> mn :call SwitchMenu() <CR>
     " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
     set winaltkeys=no
+
+    function! GetHvLibName()
+        let cpu_arch = has('win64') ? 'x64' : 'x86'
+        return 'hv-' . cpu_arch . '.dll'
+    endfunction
 endif
 " }}}
 
@@ -545,62 +550,6 @@ function! GetGuiTabTip()
     return tip
 endfunc
 set guitabtooltip=%{GetGuiTabTip()}
-" }}}
-
-" netrw 插件 {{{
-function! OpenExploreTerminal(where)
-    let l:path = expand("%:p:h")
-    if l:path == ''
-        let l:path = getcwd()
-    endif
-    if a:where == 0
-        exec 'Explore '.fnameescape(l:path)
-    elseif a:where == 1
-        exec 'vnew'
-        exec 'Explore '.fnameescape(l:path)
-    else
-        exec 'tabnew'
-        exec 'Explore '.fnameescape(l:path)
-    endif
-endfunc
-
-function! s:FilterPush(desc, wildcard)
-    let g:browsefilter .= a:desc . " (" . a:wildcard . ")\t" . a:wildcard . "\n"
-endfunc
-function! OpenBrowseGUI(where)
-    let l:path = expand("%:p:h")
-    if l:path == '' | let l:path = getcwd() | endif
-    if exists('g:browsefilter') && exists('b:browsefilter')
-        if g:browsefilter != ''
-            let b:browsefilter = g:browsefilter
-        endif
-    endif
-    if a:where == 0
-        exec 'browse e '.fnameescape(l:path)
-    elseif a:where == 1
-        exec 'browse vnew '.fnameescape(l:path)
-    else
-        exec 'browse tabnew '.fnameescape(l:path)
-    endif
-endfunc
-
-if IsGui()
-    let g:browsefilter = ''
-    call s:FilterPush("All Files", "*")
-    call s:FilterPush("C/C++/Object-C", "*.c;*.cpp;*.cc;*.h;*.hh;*.hpp;*.m;*.mm")
-    call s:FilterPush("Python", "*.py;*.pyw")
-    call s:FilterPush("Text", "*.txt")
-    call s:FilterPush("Lua", "*.lua")
-    call s:FilterPush("Vim Script", "*.vim")
-
-    vnoremap <silent> <C-O> :call OpenBrowseGUI(2) <CR>
-    nnoremap <silent> <C-O> :call OpenBrowseGUI(2) <CR>
-    inoremap <silent> <C-O> :call OpenBrowseGUI(2) <CR>
-else
-    vnoremap <silent> <C-O> :call OpenExploreTerminal(2) <CR>
-    nnoremap <silent> <C-O> :call OpenExploreTerminal(2) <CR>
-    inoremap <silent> <C-O> :call OpenExploreTerminal(2) <CR>
-endif
 " }}}
 
 " 状态栏 {{{
@@ -1066,7 +1015,7 @@ endfunction
 
 " 下一个标记
 function! GotoNextSign()
-    let curr_line_number      = line(".")
+    let curr_line_number = line(".")
     let next_sign_line_number = GetNextSignLine(curr_line_number)
     if next_sign_line_number >= 0
         exe ":" . next_sign_line_number
@@ -1075,7 +1024,7 @@ endfunction
 
 " 上一个标记
 function! GotoPrevSign()
-    let curr_line_number      = line(".")
+    let curr_line_number = line(".")
     let prev_sign_line_number = GetPrevSignLine(curr_line_number)
     if prev_sign_line_number >= 0
         exe prev_sign_line_number 
@@ -1093,10 +1042,50 @@ map <silent> <unique> cm :call RemoveAllSigns()<CR>
 function! OpenCurrentFileLocation()
     let path = expand('%:p')
     if IsWindows()
-        let cpu_arch = has('win64') ? 'x64' : 'x86'
-        let lib_name = 'hv-' . cpu_arch . '.dll'
-        let ret = libcall(lib_name, 'openFileLocationInExplore', expand(path))
+        call libcall(GetHvLibName(), 'openFileLocationInExplore', expand(path))
     endif
 endfunction
-command! Ocfl :call OpenCurrentFileLocation()
+" }}}
+
+" {{{ 打开超链接
+function! OpenUrl(url)
+    if IsWindows()
+        call libcall(GetHvLibName(), 'openUrl', a:url)
+    endif
+endfunction
+" }}}
+
+" {{{ 打开邮件
+function! OpenEmail(email)
+    if IsWindows()
+        call libcall(GetHvLibName(), 'openUrl', a:email)
+    endif
+endfunction
+" }}}
+
+" {{{ 打开当前行内容
+function! OpenCursorContent()
+    let cWORD = expand('<cWORD>')
+    " 是否是超链接
+    let match = matchstr(cWORD, '\<\w\{3,}://\(\(\S\&[^"]\)*\w\)\+[/?#]\?')
+    if match != ''
+        " 打开超链接
+        call OpenUrl(match)
+        return
+    endif
+
+    " 是否是邮件地址
+    let match = matchstr(cWORD, '\<\w[^@ \t\r<>]*\w@\w[^@ \t\r<>]\+\w\>')
+    if match != ''
+        call OpenEmail(match)
+        return
+    endif
+
+    " 打开当前文件夹
+    call OpenCurrentFileLocation()
+endfunction
+command! Occ :call OpenCursorContent()
+vnoremap <silent> <C-O> :call OpenCursorContent() <CR>
+nnoremap <silent> <C-O> :call OpenCursorContent() <CR>
+inoremap <silent> <C-O> :call OpenCursorContent() <CR>
 " }}}
