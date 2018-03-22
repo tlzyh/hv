@@ -1090,21 +1090,13 @@ map <silent> <unique> cm :call RemoveAllSigns()<CR>
 " }}}
 
 " {{{ 打开当前文件所在的文件夹，并且选中
-" os.system(r'explorer /select,C:\Users\Administrator\Desktop\tmp.lua')
-python << EOF
-# -*- coding: utf-8 -*-
-import os
-import sys
-import vim
-def open_file_location(file_path):
-    if sys.platform == 'win32':
-        cmd = "r\'explorer /select,%s\'"%(file_path)
-        os.system(cmd)
-        # os.system(r'explorer /select,C:\Users\Administrator\Desktop\tmp.lua')
-EOF
 function! OpenCurrentFileLocation()
     let path = expand('%:p')
-    " python open_file_location(vim.eval('path'))
+    if IsWindows()
+        let cpu_arch = has('win64') ? 'x64' : 'x86'
+        let lib_name = 'hv-' . cpu_arch . '.dll'
+        let ret = libcall(lib_name, 'openFileLocationInExplore', expand(path))
+    endif
 endfunction
 command! Ocfl :call OpenCurrentFileLocation()
 " }}}
