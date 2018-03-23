@@ -226,7 +226,7 @@ set scrolljump=5
 set scrolloff=3
 set foldenable
 set list
-set listchars=tab:›\ ,trail:•,extends:#,nbsp:. 
+set listchars=tab:›\ ,trail:•,extends:#,nbsp:.
 set nowrap
 set autoindent
 set shiftwidth=4
@@ -240,7 +240,7 @@ set pastetoggle=<F12>
 
 " 关闭响铃
 if IsGui()
-	autocmd GUIEnter * set visualbell t_vb=
+    autocmd GUIEnter * set visualbell t_vb=
 endif
 set noerrorbells visualbell t_vb=
 
@@ -480,7 +480,7 @@ function! GetBuffOrTabString(bufnr, fullname, tabnr)
         if l:name == ''
             return '[No Name]'
         else
-            if a:fullname 
+            if a:fullname
                 return fnamemodify(l:name, ':p')
             else
                 if a:tabnr
@@ -495,7 +495,7 @@ function! GetBuffOrTabString(bufnr, fullname, tabnr)
         if l:buftype == 'quickfix'
             return '[Quickfix]'
         elseif l:name != ''
-            if a:fullname 
+            if a:fullname
                 return '-'.fnamemodify(l:name, ':p')
             else
                 if a:tabnr
@@ -985,15 +985,15 @@ function! GetPrevSignLine(curr_line_number)
 
         if is_no_sign != 0
             let max_line_number = line_number
-        elseif line_number > max_line_number 
+        elseif line_number > max_line_number
             let max_line_number = line_number
         endif
         let is_no_sign = 0
 
         let tmp_diff = curr_line_number - line_number
         if tmp_diff > 0
-            if max_line_number_diff > 0 
-                if tmp_diff < max_line_number_diff 
+            if max_line_number_diff > 0
+                if tmp_diff < max_line_number_diff
                     let max_line_number_diff = tmp_diff
                 endif
             else
@@ -1002,9 +1002,9 @@ function! GetPrevSignLine(curr_line_number)
         endif
     endwhile
 
-    let line_number = curr_line_number - max_line_number_diff 
+    let line_number = curr_line_number - max_line_number_diff
     if is_no_sign != 0 || max_line_number_diff <= 0
-        let line_number = max_line_number 
+        let line_number = max_line_number
     endif
 
     return line_number
@@ -1024,7 +1024,7 @@ function! GotoPrevSign()
     let curr_line_number = line(".")
     let prev_sign_line_number = GetPrevSignLine(curr_line_number)
     if prev_sign_line_number >= 0
-        exe prev_sign_line_number 
+        exe prev_sign_line_number
     endif
 endfunction
 
