@@ -1,5 +1,5 @@
 " vim configuration
-" Last Change: 2018/03/19
+" Last Change: 2018/03/23
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: This file is placed in the public domain.
@@ -101,7 +101,7 @@ if IsWindows()
     " 隐藏菜单工具栏
     set guioptions-=m
     set guioptions-=T
-    noremap <silent> mn :call SwitchMenu() <CR>
+    noremap <silent> <C-M> :call SwitchMenu() <CR>
     " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
     set winaltkeys=no
 
@@ -1030,9 +1030,9 @@ endfunction
 
 " 命令映射
 map <silent> <unique> mm :call ToggleSign()<CR>
-map <silent> <unique> nm :call GotoNextSign()<CR>
-map <silent> <unique> pm :call GotoPrevSign()<CR>
-map <silent> <unique> cm :call RemoveAllSigns()<CR>
+map <silent> <unique> mn :call GotoNextSign()<CR>
+map <silent> <unique> mp :call GotoPrevSign()<CR>
+map <silent> <unique> mc :call RemoveAllSigns()<CR>
 " }}}
 
 " {{{ 打开当前文件所在的文件夹，并且选中
