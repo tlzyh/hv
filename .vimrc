@@ -134,9 +134,6 @@ call plug#begin('~/.vim/plugins')
 " color scheme
 Plug 'tlzyh/vim-colors'
 
-Plug 'xolox/vim-misc'
-Plug 'xolox/vim-shell'
-
 " 搜索
 Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
