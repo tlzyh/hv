@@ -1164,7 +1164,7 @@ function! s:CpMapNormalKeys()
         execute printf(cmd, each, pfunc, nr2char(each))
     endfor
     for each in range(0, 9)
-        exe printf(pcmd, each, pfunc, each)
+        execute printf(pcmd, each, pfunc, each)
     endfo
     for [ke, va] in items(s:kprange)
         execute printf(pcmd, ke, pfunc, va)
