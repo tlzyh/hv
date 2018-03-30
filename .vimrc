@@ -1086,3 +1086,170 @@ vnoremap <silent> <C-O> :call OpenCursorContent() <CR>
 nnoremap <silent> <C-O> :call OpenCursorContent() <CR>
 inoremap <silent> <C-O> :call OpenCursorContent() <CR>
 " }}}
+
+" {{{ 文件模糊查找
+function! s:CpBuildPrompt()
+    let base = '>>>'
+    let [hiactive, hicursor, base] = s:focus
+                \ ? ['CtrlPPrtText', 'CtrlPPrtCursor', base]
+                \ : ['CtrlPPrtBase', 'CtrlPPrtBase', tr(base, '>', '-')]
+    let hibase = 'CtrlPPrtBase'
+    redraw
+    let prt = copy(s:prompt)
+    call map(prt, 'escape(v:val, ''"\'')')
+    execute 'echoh' hibase '| echon "'.base.'"
+                \ | echoh' hiactive '| echon "'.prt[0].'"
+                \ | echoh' hicursor '| echon "'.prt[1].'"
+                \ | echoh' hiactive '| echon "'.prt[2].'" | echoh None'
+    if empty(prt[1]) && s:focus
+        execute 'echoh' hibase '| echon "_" | echoh None'
+    endif
+endfunction
+
+function! s:CpPrtClear()
+    if !s:focus
+        return
+    endif
+    let s:prompt = ['', '', ''];
+    call s:CpBuildPrompt()
+endfunction
+
+function! s:CpPrtAdd(char)
+    let s:prompt[0] .= a:char
+    call s:CpBuildPrompt()
+endfunction
+
+function! s:CpPrtBS()
+    if !s:focus
+        return
+    endif
+    let s:prompt[0] = substitute(s:prompt[0], '.$', '', '')
+    call s:CpBuildPrompt()
+endfunction
+
+function! s:CpPrtDelete()
+    if !s:focus
+        return
+    endif
+    let prt = s:prompt
+    let prt[1] = matchstr(prt[2], '^.')
+    let prt[2] = substitute(prt[2], '^.', '', '')
+    cal s:CpBuildPrompt()
+endfunction
+
+function! s:CpPrtFocusMap(char)
+    call call('s:CpPrtAdd', [a:char])
+endfunction
+
+function! s:CpPrtExit()
+    if bufnr('%') == s:bufnr && bufname('%') == 'CtrlP'
+        noautocmd call s:CpClose()
+        noautocmd wincmd p
+    endif
+endfunction
+
+function! s:CpMapNormalKeys()
+    if exists('s:nmapped') && s:nmapped == s:bufnr
+        return
+    endif
+
+    let pcmd = "nn \<buffer> \<silent> \<k%s> :\<c-u>cal \<SID>%s(\"%s\")\<cr>"
+    let cmd = substitute(pcmd, 'k%s', 'char-%d', '')
+    let pfunc = 'CpPrtFocusMap'
+    let ranges = [32, 33, 125, 126] + range(35, 91) + range(93, 123)
+    for each in [34, 92, 124]
+        execute printf(cmd, each, pfunc, escape(nr2char(each), '"|\'))
+    endfor
+    for each in ranges
+        execute printf(cmd, each, pfunc, nr2char(each))
+    endfor
+    for each in range(0, 9)
+        exe printf(pcmd, each, pfunc, each)
+    endfo
+    for [ke, va] in items(s:kprange)
+        execute printf(pcmd, ke, pfunc, va)
+    endfor
+    let s:nmapped = s:bufnr
+endfunction
+
+function! s:CpMapSpecailKeys()
+    if !(exists('s:smapped') && s:smapped == s:bufnr)
+        if (has('termresponse') && v:termresponse =~ "\<ESC>")
+                    \ || &term =~? '\vxterm|<k?vt|gnome|screen|linux|ansi'
+            for each in ['\A <up>','\B <down>','\C <right>','\D <left>']
+                execute s:lcmap.' <esc>['.each
+            endfor
+        endif
+    endif
+
+    for [ke, va] in items(s:prtmaps)
+        for kp in va
+            execute s:lcmap kp ':<c-u>cal <SID>'.ke.'<cr>'
+        endfor
+    endfor
+    let s:smapped = s:bufnr
+endfunction
+
+function! s:CpSetupEvn()
+    " 设置当前buffer，去掉行号等等显示
+    setlocal noswapfile
+    setlocal nonumber
+    setlocal nobuflisted
+    setlocal nowrap
+    setlocal nolist
+    setlocal nospell
+    setlocal nocursorcolumn
+    setlocal winfixheight
+    setlocal norelativenumber
+    setlocal noundofile
+
+    setlocal foldcolumn=0
+    setlocal foldlevel=99
+    setlocal textwidth=0
+    setlocal buftype=nofile
+    setlocal bufhidden=unload
+    setlocal colorcolumn=0
+endfunction
+
+function! s:CpInitParams()
+    let s:bufnr = bufnr('%')
+    let s:focus = 1
+    let s:prompt = ['', '', '']
+    let s:kprange = {
+                \ 'Plus': '+',
+                \ 'Minus': '-',
+                \ 'Divide': '/',
+                \ 'Multiply': '*',
+                \ 'Point': '.',
+                \ }
+
+    let [s:lcmap, s:prtmaps] = ['nn <buffer> <silent>', {
+                \ 'CpPrtBS()':              ['<bs>', '<c-]>'],
+                \ 'CpPrtDelete()':          ['<del>'],
+                \ 'CpPrtClear()':           ['<c-u>'],
+                \ 'CpPrtExit()':            ['<esc>', '<c-c>', '<c-g>'],
+                \ }]
+endfunction
+
+function! s:CpOpen()
+    silent! execute 'keepalt botright 1new CtrlP'
+    call s:CpSetupEvn()
+    call s:CpInitParams()
+    call s:CpMapNormalKeys()
+    call s:CpMapSpecailKeys()
+endfunction
+
+function! s:CpClose()
+    if winnr('$') == 1
+        bw!
+    else
+        try
+            bunload!
+        catch
+            close!
+        endtry
+    endif
+endfunction
+
+map <leader>m :call <SID>CpOpen()<CR>
+" }}}
