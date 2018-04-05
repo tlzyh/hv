@@ -4,18 +4,6 @@
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: This file is placed in the public domain.
 
-" {{{ 运行环境检查
-if !has("signs")
-    echoerr "Vim 不支持 sign"
-    finish
-endif
-
-if !has("python") && !has("python3")
-    echoerr "Vim 不支持 python"
-    finish
-endif
-" }}}
-
 " 公共函数定义 {{{
 " 是否是macOs
 function! IsOSX()
@@ -75,6 +63,36 @@ function! GetVimCmdOutput(cmd)
   exec ":lan mes " . old_lang
   return output
 endfunction
+
+function! WarnMsg(msg)
+    echohl WarningMsg | echomsg a:msg | echohl None
+endfunction
+
+function! ErrorMsg(msg)
+    echoerr a:msg
+endfunction
+" }}}
+
+" {{{ 运行环境检查
+if !has("signs")
+    call ErrorMsg("Vim 不支持 sign")
+    finish
+endif
+
+if !has("python") && !has("python3")
+    call ErrorMsg("Vim 不支持 python")
+    finish
+endif
+
+" 版本判断
+if v:version < 800
+    call ErrorMsg("请使用8.0以上版本")
+else
+    if !has('patch-8.0.1023')
+        call ErrorMsg("版本过低：patch-8.0.1023")
+    endif
+endif
+
 " }}}
 
 " 通用设置 {{{
@@ -319,15 +337,130 @@ augroup END
 " }}}
 
 " 文件内容搜索 {{{
-silent function! ExecuteGrep(str)
+let s:grep_tempfile = ''
+let s:grep_job_id = 0
+function! DelGrepCmdTmpFile()
+    if IsWindows()
+        if exists('s:grep_tempfile') && s:grep_tempfile != ''
+            call delete(s:grep_tempfile)
+            let s:grep_tempfile = ''
+        endif
+    endif
+endfunction
+
+function! OnGrepOutputCallback(qf_id, channel, msg)
+    let job = ch_getjob(a:channel)
+    if job_status(job) == 'fail'
+        call WarnMsg('对应的Channel没有对应的Job')
+        return
+    endif
+
+    if has('patch-8.0.1023')
+        let l = getqflist({'id' : a:qf_id})
+        if !has_key(l, 'id') || l.id == 0
+            call job_stop(job)
+            return
+        endif
+        call setqflist([], 'a', {'id' : a:qf_id,
+                    \ 'efm' : '%f:%\\s%#%l:%c:%m,%f:%\s%#%l:%m',
+                    \ 'lines' : [a:msg]})
+    else
+        let old_efm = &efm
+        set efm=%f:%\\s%#%l:%c:%m,%f:%\\s%#%l:%m
+        caddexpr a:msg . "\n"
+        let &efm = old_efm
+    endif
+endfunction
+
+function! OnGrepCloseCallback(qf_id, channel)
+    let job = ch_getjob(a:channel)
+    if job_status(job) == 'fail'
+        call WarnMsg('对应的Channel没有对应的Job, Close callback')
+        return
+    endif
+    let emsg = '[Search command exited with status ' . job_info(job).exitval . ']'
+
+    if has('patch-8.0.1023')
+        let l = getqflist({'id' : a:qf_id})
+        if has_key(l, 'id') && l.id == a:qf_id
+            call setqflist([], 'a', {'id' : a:qf_id,
+                        \ 'efm' : '%f:%\s%#%l:%m',
+                        \ 'lines' : [emsg]})
+        endif
+    else
+        caddexpr emsg
+    endif
+endfunction
+
+function! RunGrepAsync(cmd, pattern, dir)
+    if s:grep_job_id != 0
+        " 先停止运行的job
+        call job_stop(s:grep_job_id)
+    endif
+
+    let title = '[Search results for ' . a:pattern . ' in ' . a:dir . ']'
+    caddexpr title . "\n"
+
+    call setqflist([], 'a', {'title' : title})
+    let l = getqflist({'id' : 0})
+    if has_key(l, 'id')
+        let qf_id = l.id
+    else
+        let qf_id = -1
+    endif
+
+    if IsWindows()
+        let cmd_list = [a:cmd]
+    else
+        let cmd_list = ['/bin/sh', '-c', a:cmd]
+    endif
+
+    " 开启job
+    let s:grep_job_id = job_start(cmd_list,
+                \ {'callback' : function('OnGrepOutputCallback', [qf_id]),
+                \ 'close_cb' : function('OnGrepCloseCallback', [qf_id]),
+                \ 'exit_cb' : function('OnGrepExitCallback', [qf_id])})
+
+    " 判断是否成功
+    if job_status(s:grep_job_id) == 'fail'
+        call WarnMsg('创建Job失败')
+        let s:grep_job_id = 0
+        call DelGrepCmdTmpFile()
+        return
+    endif
+    botright copen
+endfunction
+
+function! OnGrepExitCallback(qf_id, job, exit_status)
+    if s:grep_job_id == a:job
+        let s:grep_job_id = 0
+        call DelGrepCmdTmpFile()
+    endif
+endfunction
+
+function! RunGrep(pattern, option, dir)
+    let cmd = 'grep ' . a:option . ' ' . a:pattern . ' ' . a:dir
+    if IsWindows()
+        " windows下面处理多个引号的命令有坑。所以，先把命令保存到bat
+        " 文件中，再执行bat文件
+        let s:grep_tempfile = fnamemodify(tempname(), ':h') . '\hvgrep.cmd'
+        " 关闭回显
+        call writefile(['@echo off', cmd], s:grep_tempfile)
+        call RunGrepAsync(s:grep_tempfile, a:pattern, a:dir)
+        call DelGrepCmdTmpFile()
+    else
+        call RunGrepAsync(cmd, a:pattern, a:dir)
+    endif
+endfunction
+
+function! ExecuteGrep(str)
     if strlen(a:str) > 0
-        copen
-        execute "AsyncRun grep -rna \"" . a:str . "\" " . getcwd()
+        call RunGrep(a:str, '-ran', getcwd())
     endif
 endfunction
 
 " 文件中删除
-silent function! SearchInFiles()
+function! SearchInFiles()
     let str = GetVisualSelection()
     if strlen(str) <= 0
         let str = GetCursorWord()
@@ -336,19 +469,15 @@ silent function! SearchInFiles()
 endfunction
 
 " 搜索输入的内容
-silent function! SearchInputWord()
+function! SearchInputWord()
     let word = input("Please enter the word: ")
     exe "norm! \<Esc><CR>"
     call ExecuteGrep(word)
 endfunction
 
 if executable('grep')
-    " 设置使用grep
-    if IsWindows()
-        set grepprg=grep\ -nH
-    endif
-    vnoremap <silent> <C-S> :call SearchInFiles() <CR>
-    nnoremap <silent> <C-S> :call SearchInFiles() <CR>
+    vnoremap <silent><C-S> :call SearchInFiles() <CR>
+    nnoremap <silent><C-S> :call SearchInFiles() <CR>
 
     noremap <silent><M-1> :call SearchInputWord()<CR>
     inoremap <silent><M-1> <ESC>:call SearchInputWord()<CR>
@@ -1089,6 +1218,11 @@ inoremap <silent> <C-O> :call OpenCursorContent() <CR>
 
 " {{{ 文件模糊查找
 function! s:CpBuildPrompt()
+    let tmp = ['tet--', 'wefrewfe', 'hahahah', 'hahahah', '测试吃-------------']
+    cal setline(1, tmp)
+    "setlocal noma
+    "setlocal cul
+
     let base = '>>>'
     let [hiactive, hicursor, base] = s:focus
                 \ ? ['CtrlPPrtText', 'CtrlPPrtCursor', base]
@@ -1223,11 +1357,11 @@ function! s:CpInitParams()
                 \ 'Point': '.',
                 \ }
 
-    let [s:lcmap, s:prtmaps] = ['nn <buffer> <silent>', {
-                \ 'CpPrtBS()':              ['<bs>', '<c-]>'],
+    let [s:lcmap, s:prtmaps] = ['nnoremap <buffer> <silent>', {
+                \ 'CpPrtBS()':              ['<bs>'],
                 \ 'CpPrtDelete()':          ['<del>'],
                 \ 'CpPrtClear()':           ['<c-u>'],
-                \ 'CpPrtExit()':            ['<esc>', '<c-c>', '<c-g>'],
+                \ 'CpPrtExit()':            ['<esc>'],
                 \ }]
 endfunction
 
