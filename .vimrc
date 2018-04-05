@@ -17,7 +17,7 @@ endfunction
 
 " 是否是windows平台
 function! IsWindows()
-    return  (has('win32') || has('win64'))
+    return has('win32') || has('win64')
 endfunction
 
 " 是否是GUI版本
@@ -46,11 +46,11 @@ function! GetVimCmdOutput(cmd)
   let old_lang = v:lang
   exec ":lan mes en_US"
   let v:errmsg = ''
-  let output   = ''
-  let _z       = @z
+  let output = ''
+  let _z = @z
   try
     redir @z
-    silent exe a:cmd
+    silent execute a:cmd
   catch /.*/
     let v:errmsg = substitute(v:exception, '^[^:]\+:', '', '')
   finally
@@ -60,7 +60,7 @@ function! GetVimCmdOutput(cmd)
     endif
     let @z = _z
   endtry
-  exec ":lan mes " . old_lang
+  execute ":lan mes " . old_lang
   return output
 endfunction
 
@@ -96,6 +96,7 @@ endif
 " }}}
 
 " 通用设置 {{{
+let mapleader = ','
 set nocompatible
 
 if !IsWindows()
@@ -119,7 +120,7 @@ if IsWindows()
     " 隐藏菜单工具栏
     set guioptions-=m
     set guioptions-=T
-    noremap <silent> <C-M> :call SwitchMenu() <CR>
+    noremap <leader>m :call SwitchMenu()<CR>
     " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
     set winaltkeys=no
 
@@ -261,8 +262,6 @@ if IsGui()
     autocmd GUIEnter * set visualbell t_vb=
 endif
 set noerrorbells visualbell t_vb=
-
-let mapleader = ','
 " }}}
 
 " 字体字号{{{
@@ -398,8 +397,8 @@ function! RunGrepAsync(cmd, pattern, dir)
         call job_stop(s:grep_job_id)
     endif
 
-    let title = '[Search results for ' . a:pattern . ' in ' . a:dir . ']'
-    caddexpr title . "\n"
+    let title = '[Search results for (' . a:pattern . ') in ' . a:dir . ']'
+    cexpr title . "\n"
 
     call setqflist([], 'a', {'title' : title})
     let l = getqflist({'id' : 0})
@@ -1357,12 +1356,13 @@ function! s:CpInitParams()
                 \ 'Point': '.',
                 \ }
 
-    let [s:lcmap, s:prtmaps] = ['nnoremap <buffer> <silent>', {
+    let s:lcmap = 'nnoremap <buffer> <silent>'
+    let s:prtmaps = {
                 \ 'CpPrtBS()':              ['<bs>'],
                 \ 'CpPrtDelete()':          ['<del>'],
                 \ 'CpPrtClear()':           ['<c-u>'],
                 \ 'CpPrtExit()':            ['<esc>'],
-                \ }]
+                \ }
 endfunction
 
 function! s:CpOpen()
@@ -1385,5 +1385,5 @@ function! s:CpClose()
     endif
 endfunction
 
-map <leader>m :call <SID>CpOpen()<CR>
+map <leader>t :call <SID>CpOpen()<CR>
 " }}}
