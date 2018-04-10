@@ -154,9 +154,9 @@ call plug#begin('~/.vim/plugins')
 Plug 'tlzyh/vim-colors'
 
 " 搜索
-" Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
-" Plug 'junegunn/fzf.vim'
-Plug 'Yggdroot/LeaderF', { 'do': '.\install.bat' }
+Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
+Plug 'junegunn/fzf.vim'
+" Plug 'Yggdroot/LeaderF', { 'do': '.\install.bat' }
 
 " 状态栏
 Plug 'vim-airline/vim-airline'
