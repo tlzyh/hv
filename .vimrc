@@ -154,8 +154,9 @@ call plug#begin('~/.vim/plugins')
 Plug 'tlzyh/vim-colors'
 
 " 搜索
-Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
-Plug 'junegunn/fzf.vim'
+" Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
+" Plug 'junegunn/fzf.vim'
+Plug 'Yggdroot/LeaderF', { 'do': '.\install.bat' }
 
 " 状态栏
 Plug 'vim-airline/vim-airline'
@@ -164,7 +165,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'skywind3000/asyncrun.vim'
 
 Plug 'w0rp/ale'
-Plug 'python-mode/python-mode'
+"Plug 'python-mode/python-mode'
 
 Plug 'davidhalter/jedi-vim'
 
@@ -353,7 +354,6 @@ function! OnGrepOutputCallback(qf_id, channel, msg)
         call WarnMsg('对应的Channel没有对应的Job')
         return
     endif
-
     if has('patch-8.0.1023')
         let l = getqflist({'id' : a:qf_id})
         if !has_key(l, 'id') || l.id == 0
@@ -378,7 +378,6 @@ function! OnGrepCloseCallback(qf_id, channel)
         return
     endif
     let emsg = '[Search command exited with status ' . job_info(job).exitval . ']'
-
     if has('patch-8.0.1023')
         let l = getqflist({'id' : a:qf_id})
         if has_key(l, 'id') && l.id == a:qf_id
@@ -819,16 +818,16 @@ end
 " }}}
 
 " python-mode 配置 {{{
-if isdirectory(expand("~/.vim/plugins/python-mode"))
-  let g:pymode_lint_checkers = ['pyflakes']
-  let g:pymode_trim_whitespaces = 0
-  let g:pymode_options = 0
-  let g:pymode_rope = 0
-  let g:pymode_indent = 1
-  let g:pymode_folding = 0
-  let g:pymode_options_colorcolumn = 1
-  let g:pymode_breakpoint_bind = '<leader>br'
-end
+"if isdirectory(expand("~/.vim/plugins/python-mode"))
+"  let g:pymode_lint_checkers = ['pyflakes']
+"  let g:pymode_trim_whitespaces = 0
+"  let g:pymode_options = 0
+"  let g:pymode_rope = 0
+"  let g:pymode_indent = 1
+"  let g:pymode_folding = 0
+"  let g:pymode_options_colorcolumn = 1
+"  let g:pymode_breakpoint_bind = '<leader>br'
+"end
 " }}}
 
 " Python 格式化 {{{
@@ -1286,19 +1285,24 @@ function! s:CpMapNormalKeys()
         return
     endif
 
-    let pcmd = "nn \<buffer> \<silent> \<k%s> :\<c-u>cal \<SID>%s(\"%s\")\<cr>"
+    let pcmd = "nnoremap \<buffer> \<silent> \<k%s> :\<c-u>cal \<SID>%s(\"%s\")\<cr>"
     let cmd = substitute(pcmd, 'k%s', 'char-%d', '')
     let pfunc = 'CpPrtFocusMap'
     let ranges = [32, 33, 125, 126] + range(35, 91) + range(93, 123)
+
+    " 特殊的可打印字符，需要转义的
     for each in [34, 92, 124]
         execute printf(cmd, each, pfunc, escape(nr2char(each), '"|\'))
     endfor
+    " 普通可打印字符
     for each in ranges
         execute printf(cmd, each, pfunc, nr2char(each))
     endfor
+    " 数字
     for each in range(0, 9)
         execute printf(pcmd, each, pfunc, each)
     endfo
+    " 加减乘除
     for [ke, va] in items(s:kprange)
         execute printf(pcmd, ke, pfunc, va)
     endfor
@@ -1375,7 +1379,7 @@ endfunction
 
 function! s:CpClose()
     if winnr('$') == 1
-        bw!
+        bwipeout!
     else
         try
             bunload!
@@ -1386,4 +1390,39 @@ function! s:CpClose()
 endfunction
 
 map <leader>t :call <SID>CpOpen()<CR>
+" }}}
+
+" {{{ 测试代码
+"function! HvTest()
+"    function! Callback(channel, msg)
+"        echom 'callback -------- ' . a:msg . '\n'
+"    endfunction
+"
+"    function! CloseCallback(channel)
+"    endfunction
+"
+"    function! OutCallback(channel, msg)
+"        echom 'outcallback -------- ' . a:msg . '\n'
+"    endfunction
+"
+"    function! ErrCallback(channel, msg)
+"        echom 'errcallback -------- ' . a:msg . '\n'
+"    endfunction
+"
+"    function! ExitCallback(job, exit_status)
+"    endfunction
+"
+"    let cmd = 'hv'
+"    let s:hv_tempfile = fnamemodify(tempname(), ':h') . '\hvtmp.cmd'
+"    call writefile(['@echo off', cmd], s:hv_tempfile)
+"    let cmd_list = [cmd]
+"    let s:hv_job_id = job_start(cmd_list,
+"                \ {'callback' : function('Callback'),
+"                \ 'close_cb' : function('CloseCallback'),
+"                \ 'out_cb' : function('OutCallback'),
+"                \ 'err_cb' : function('ErrCallback'),
+"                \ 'exit_cb' : function('ExitCallback')})
+"    call delete(s:hv_tempfile)
+"endfunction
+"map <leader>t :call HvTest()<CR>
 " }}}
