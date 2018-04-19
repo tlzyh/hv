@@ -649,7 +649,11 @@ function! GetGuiTabLineString()
     let l:buflist = tabpagebuflist(l:num)
     let l:winnr = tabpagewinnr(l:num)
     let l:bufnr = l:buflist[l:winnr - 1]
-    return GetBuffOrTabString(l:bufnr, 0, l:num)
+    let l:tab = GetBuffOrTabString(l:bufnr, 0, l:num)
+    if getbufvar(l:bufnr, "&modified")
+        let l:tab = l:tab . ' +'
+    endif
+    return l:tab
 endfunc
 
 set tabline=%!CreateTerminalTabLine()
