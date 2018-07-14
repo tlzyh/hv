@@ -499,8 +499,11 @@ augroup END
 
 " 切换到上一页
 silent function! SwitchToPreTab()
-    if exists("g:hv_pre_tab_nr")
-        execute "tabn " . g:hv_pre_tab_nr
+    if exists("g:hv_pre_tab_nr") && g:hv_pre_tab_nr > 0
+        let l:pn = tabpagenr('$')
+        if g:hv_pre_tab_nr <= l:pn
+            execute "tabn " . g:hv_pre_tab_nr
+        endif
     endif
 endfunction
 
@@ -573,6 +576,7 @@ else
     inoremap <silent><ESC>]{0}2~ <ESC>:tabn 2<CR>
     inoremap <silent><ESC>]{0}3~ <ESC>:tabn 3<CR>
     inoremap <silent><ESC>]{0}4~ <ESC>:tabn 4<CR>
+
     inoremap <silent><ESC>]{0}5~ <ESC>:tabn 5<CR>
     inoremap <silent><ESC>]{0}6~ <ESC>:tabn 6<CR>
     inoremap <silent><ESC>]{0}7~ <ESC>:tabn 7<CR>
