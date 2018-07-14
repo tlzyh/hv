@@ -503,6 +503,8 @@ silent function! SwitchToPreTab()
         let l:pn = tabpagenr('$')
         if g:hv_pre_tab_nr <= l:pn
             execute "tabn " . g:hv_pre_tab_nr
+        else
+            let g:hv_pre_tab_nr = 0
         endif
     endif
 endfunction
