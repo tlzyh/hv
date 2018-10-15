@@ -1,5 +1,5 @@
 " vim configuration
-" Last Change: 2018/04/05
+" Last Change: 2018/07/14
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: This file is placed in the public domain.
@@ -43,25 +43,25 @@ endfunction
 
 " 获取vim 命令执行之后的返回值
 function! GetVimCmdOutput(cmd)
-  let old_lang = v:lang
-  exec ":lan mes en_US"
-  let v:errmsg = ''
-  let output = ''
-  let _z = @z
-  try
-    redir @z
-    silent execute a:cmd
-  catch /.*/
-    let v:errmsg = substitute(v:exception, '^[^:]\+:', '', '')
-  finally
-    redir END
-    if v:errmsg == ''
-      let output = @z
-    endif
-    let @z = _z
-  endtry
-  execute ":lan mes " . old_lang
-  return output
+    let old_lang = v:lang
+    exec ":lan mes en_US"
+    let v:errmsg = ''
+    let output = ''
+    let _z = @z
+    try
+        redir @z
+        silent execute a:cmd
+    catch /.*/
+        let v:errmsg = substitute(v:exception, '^[^:]\+:', '', '')
+    finally
+        redir END
+        if v:errmsg == ''
+            let output = @z
+        endif
+        let @z = _z
+    endtry
+    execute ":lan mes " . old_lang
+    return output
 endfunction
 
 function! WarnMsg(msg)
