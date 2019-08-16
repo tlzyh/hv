@@ -1,5 +1,5 @@
 " vim configuration
-" Last Change: 2018/07/14
+" Last Change: 2019/08/16
 " Author: YangHui <tlz.yh@outlook.com>
 " Maintainer: YangHui <tlz.yh@outlook.com>
 " License: This file is placed in the public domain.
@@ -153,12 +153,24 @@ endif
 "}}}
 
 " 设置 vim-plug {{{
-call plug#begin('~/.vim/plugins')
+
+if IsWindows()
+    let g:PLUGIN_HOME = expand('~/AppData/Local/nvim/plugged')
+else
+    let g:PLUGIN_HOME=expand('~/.config/nvim/plugged')
+endif
+
+call plug#begin(g:PLUGIN_HOME)
 " color scheme
 Plug 'tlzyh/vim-colors'
 
 " 搜索
-Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
+if IsWindows()
+    Plug 'junegunn/fzf', { 'dir': g:PLUGIN_HOME . '/fzf' }
+else
+    " 非windows系统使用脚本安装
+    Plug 'junegunn/fzf', { 'dir': '~/.vim/fzf', 'do': './install --bin' }
+end
 Plug 'junegunn/fzf.vim'
 " Plug 'Yggdroot/LeaderF', { 'do': '.\install.bat' }
 
@@ -168,10 +180,11 @@ Plug 'vim-airline/vim-airline-themes'
 
 Plug 'skywind3000/asyncrun.vim'
 
-Plug 'w0rp/ale'
+"Plug 'w0rp/ale'
 "Plug 'python-mode/python-mode'
 
-Plug 'davidhalter/jedi-vim'
+"Plug 'davidhalter/jedi-vim'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 
 call plug#end()
 " End vim-plug }}}
@@ -279,8 +292,8 @@ if IsGui()
         set guifont=Courier\ New\ Regular:h14
     elseif IsWindows()
         if has('nvim')
-            set guifont=Courier\ New\ Regular:h12
-            " nvim 中有些字体有警告，使用下面的命令，不输出警告信息
+            " set guifont=Courier\ New\ Regular:h12
+            " nvim gui版本的字体设置放到 ginit.vim
         else
             set guifont=Courier_New:h11,Andale_Mono:h11,Menlo:h10,Consolas:h10
         endif
@@ -293,35 +306,11 @@ endif
 "}}}
 
 " vimrc编辑 {{{
+function! EditGuiInitVim()
+endfunction
+"noremap <leader>m :call SwitchMenu()<CR>
 nnoremap <leader>ev :tabnew $MYVIMRC<cr>
 nnoremap <leader>sv :source $MYVIMRC<cr>
-" }}}
-
-" 目录切换设置 {{{
-" 第一次打开的目录作为工程目录
-silent function! GuiEnterInit()
-    let g:hv_project_directory = getcwd()
-endfunction
-augroup project_dir_init
-    autocmd!
-    autocmd GUIEnter * call GuiEnterInit()
-augroup END
-" 打开Buff，当前目录切换到当前文件所在目录
-" autocmd BufEnter * if bufname("") !~ "^\[A-Za-z0-9\]*://" | lcd %:p:h | endif
-silent function! SwitchProjectDir()
-    if bufname("") !~ "^\[A-Za-z0-9\]*://"
-        if toupper(getcwd()) == toupper(g:hv_project_directory)
-            " 设置为当前路径, 可以拼接路径，也可以像下面一样
-            lcd %:p:h
-            echo 'change to current directory:' . getcwd()
-        else
-            execute "lcd " . g:hv_project_directory
-            echo 'change to project directory:' . g:hv_project_directory
-        endif
-    endif
-endfunction
-vnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
-nnoremap <silent> <C-D> :call SwitchProjectDir() <CR>
 " }}}
 
 " quickfix 配置 {{{
@@ -491,109 +480,6 @@ else
 endif
 " }}}
 
-" tab 设置 {{{
-" 左右切换tab
-noremap <C-H> gT
-noremap <C-L> gt
-
-silent function! TabLeaveInit()
-    let g:hv_pre_tab_nr = tabpagenr()
-endfunction
-augroup tab_leave
-    autocmd!
-    autocmd TabLeave * call TabLeaveInit()
-augroup END
-
-" 切换到上一页
-silent function! SwitchToPreTab()
-    if exists("g:hv_pre_tab_nr") && g:hv_pre_tab_nr > 0
-        let l:pn = tabpagenr('$')
-        if g:hv_pre_tab_nr <= l:pn
-            execute "tabn " . g:hv_pre_tab_nr
-        else
-            let g:hv_pre_tab_nr = 0
-        endif
-    endif
-endfunction
-
-if IsGui()
-    if IsOSX()
-        " set macmeta
-        noremap <silent><C-TAB> :call SwitchToPreTab()<CR>
-        inoremap <silent><C-TAB> <ESC>:call SwitchToPreTab()<CR>
-        noremap <silent><D-1> :tabn 1<CR>
-        noremap <silent><D-2> :tabn 2<CR>
-        noremap <silent><D-3> :tabn 3<CR>
-        noremap <silent><D-4> :tabn 4<CR>
-        noremap <silent><D-5> :tabn 5<CR>
-        noremap <silent><D-6> :tabn 6<CR>
-        noremap <silent><D-7> :tabn 7<CR>
-        noremap <silent><D-8> :tabn 8<CR>
-        noremap <silent><D-9> :tabn 9<CR>
-        noremap <silent><D-0> :tabn 10<CR>
-        inoremap <silent><D-1> <ESC>:tabn 1<CR>
-        inoremap <silent><D-2> <ESC>:tabn 2<CR>
-        inoremap <silent><D-3> <ESC>:tabn 3<CR>
-        inoremap <silent><D-4> <ESC>:tabn 4<CR>
-        inoremap <silent><D-5> <ESC>:tabn 5<CR>
-        inoremap <silent><D-6> <ESC>:tabn 6<CR>
-        inoremap <silent><D-7> <ESC>:tabn 7<CR>
-        inoremap <silent><D-8> <ESC>:tabn 8<CR>
-        inoremap <silent><D-9> <ESC>:tabn 9<CR>
-        inoremap <silent><D-0> <ESC>:tabn 10<CR>
-        noremap <silent><D-O> :browse tabnew<CR>
-        inoremap <silent><D-O> <ESC>:browse tabnew<CR>
-    else
-        " set macmeta
-        noremap <silent><C-TAB> :call SwitchToPreTab()<CR>
-        inoremap <silent><C-TAB> <ESC>:call SwitchToPreTab()<CR>
-        " noremap <silent><M-1> :tabn 1<CR>
-        noremap <silent><M-2> :tabn 2<CR>
-        noremap <silent><M-3> :tabn 3<CR>
-        noremap <silent><M-4> :tabn 4<CR>
-        noremap <silent><M-5> :tabn 5<CR>
-        noremap <silent><M-6> :tabn 6<CR>
-        noremap <silent><M-7> :tabn 7<CR>
-        noremap <silent><M-8> :tabn 8<CR>
-        noremap <silent><M-9> :tabn 9<CR>
-        noremap <silent><M-0> :tabn 10<CR>
-        inoremap <silent><M-1> <ESC>:tabn 1<CR>
-        inoremap <silent><M-2> <ESC>:tabn 2<CR>
-        inoremap <silent><M-3> <ESC>:tabn 3<CR>
-        inoremap <silent><M-4> <ESC>:tabn 4<CR>
-        inoremap <silent><M-5> <ESC>:tabn 5<CR>
-        inoremap <silent><M-6> <ESC>:tabn 6<CR>
-        inoremap <silent><M-7> <ESC>:tabn 7<CR>
-        inoremap <silent><M-8> <ESC>:tabn 8<CR>
-        inoremap <silent><M-9> <ESC>:tabn 9<CR>
-        inoremap <silent><M-0> <ESC>:tabn 10<CR>
-    end
-else
-    " 使用终端自定义按键序列，把alt-n 或者alt-shift-n 设置为
-    " 发送 "<ESC>]{0}n~" 按键序列
-    noremap <silent><ESC>]{0}1~ :tabn 1<CR>
-    noremap <silent><ESC>]{0}2~ :tabn 2<CR>
-    noremap <silent><ESC>]{0}3~ :tabn 3<CR>
-    noremap <silent><ESC>]{0}4~ :tabn 4<CR>
-    noremap <silent><ESC>]{0}5~ :tabn 5<CR>
-    noremap <silent><ESC>]{0}6~ :tabn 6<CR>
-    noremap <silent><ESC>]{0}7~ :tabn 7<CR>
-    noremap <silent><ESC>]{0}8~ :tabn 8<CR>
-    noremap <silent><ESC>]{0}9~ :tabn 9<CR>
-    noremap <silent><ESC>]{0}0~ :tabn 10<CR>
-    inoremap <silent><ESC>]{0}1~ <ESC>:tabn 1<CR>
-    inoremap <silent><ESC>]{0}2~ <ESC>:tabn 2<CR>
-    inoremap <silent><ESC>]{0}3~ <ESC>:tabn 3<CR>
-    inoremap <silent><ESC>]{0}4~ <ESC>:tabn 4<CR>
-
-    inoremap <silent><ESC>]{0}5~ <ESC>:tabn 5<CR>
-    inoremap <silent><ESC>]{0}6~ <ESC>:tabn 6<CR>
-    inoremap <silent><ESC>]{0}7~ <ESC>:tabn 7<CR>
-    inoremap <silent><ESC>]{0}8~ <ESC>:tabn 8<CR>
-    inoremap <silent><ESC>]{0}9~ <ESC>:tabn 9<CR>
-    inoremap <silent><ESC>]{0}0~ <ESC>:tabn 10<CR>
-endif
-
 " 终端模式下的TabLine， 参见官方文档示例
 function! CreateTerminalTabLine()
     let s = ''
@@ -695,8 +581,8 @@ set guitabtooltip=%{GetGuiTabTip()}
 
 " 状态栏 {{{
 " 如果没有powerline 使用自己的配置
-if isdirectory(expand("~/.vim/plugins/vim-airline"))
-    if isdirectory(expand("~/.vim/plugins/vim-airline-themes"))
+if isdirectory(expand(g:PLUGIN_HOME . "/vim-airline"))
+    if isdirectory(expand(g:PLUGIN_HOME . "/vim-airline-themes"))
         if !exists('g:airline_theme')
             let g:airline_theme = 'solarized'
         endif
@@ -828,11 +714,52 @@ function! OpenFloatingWin()
         \ signcolumn=no
 endfunction
 
-if isdirectory(expand("~/.vim/plugins/fzf.vim"))
+" 自动补全 {{{
+if isdirectory(expand(g:PLUGIN_HOME . "/deoplete.nvim"))
+    " Wheter to enable deoplete automatically after start nvim
+    let g:deoplete#enable_at_startup = 1
+
+    " Maximum candidate window width
+    call deoplete#custom#source('_', 'max_menu_width', 80)
+
+    " Minimum character length needed to activate auto-completion,
+    " see https://goo.gl/QP9am2
+    call deoplete#custom#source('_', 'min_pattern_length', 1)
+
+    " Whether to disable completion for certain syntax
+    " call deoplete#custom#source('_', {
+    "     \ 'filetype': ['vim'],
+    "     \ 'disabled_syntaxes': ['String']
+    "     \ })
+    call deoplete#custom#source('_', {
+                \ 'filetype': ['python'],
+                \ 'disabled_syntaxes': ['Comment']
+                \ })
+
+    " Ignore certain sources, because they only cause nosie most of the time
+    call deoplete#custom#option('ignore_sources', {
+                \ '_': ['around', 'buffer', 'tag']
+                \ })
+
+    " Candidate list item number limit
+    call deoplete#custom#option('max_list', 30)
+
+    " The number of processes used for the deoplete parallel feature.
+    call deoplete#custom#option('num_processes', 16)
+
+    " The delay for completion after input, measured in milliseconds.
+    call deoplete#custom#option('auto_complete_delay', 100)
+
+    " Enable deoplete auto-completion
+    call deoplete#custom#option('auto_complete', v:true)
+endif
+" }}}
+
+if isdirectory(expand(g:PLUGIN_HOME . "/fzf.vim"))
     function! s:build_quickfix_list(lines)
-      call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
-      copen
-      cc
+        call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
+        copen
+        cc
     endfunction
 
     let g:fzf_action = {
@@ -892,7 +819,7 @@ augroup END
 " }}}
 
 " 快速运行 {{{
-if isdirectory(expand("~/.vim/plugins/asyncrun.vim"))
+if isdirectory(expand(g:PLUGIN_HOME . "/asyncrun.vim"))
     augroup quick_async_run
         autocmd!
         autocmd User AsyncRunStart call asyncrun#quickfix_toggle(15, 1)
@@ -917,9 +844,14 @@ endif
 
 " 初始化目录 {{{
 function! InitializeDirectories()
-    let parent = $HOME . '/.vimtmpdir/'
+    if IsWindows()
+        let dir = expand('~/AppData/Local/nvim')
+    else
+        let dir =expand('~/.config/nvim')
+    endif
 
-    " create parent dir
+    let parent = dir . '/.vimtmpdir/'
+
     if !isdirectory(parent)
         call mkdir(parent)
     endif
@@ -956,7 +888,7 @@ call InitializeDirectories()
 " }}}
 
 " 主题设置 {{{
-if filereadable(expand("~/.vim/plugins/vim-colors/colors/molokai.vim"))
+if filereadable(expand(g:PLUGIN_HOME . "/vim-colors/colors/molokai.vim"))
     colorscheme molokai
 endif
 " }}}
