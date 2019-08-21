@@ -69,7 +69,9 @@ function! GetVimCmdOutput(cmd)
 endfunction
 
 function! WarnMsg(msg)
-    echohl WarningMsg | echomsg a:msg | echohl None
+    echohl WarningMsg
+    echomsg a:msg
+    echohl None
 endfunction
 
 function! ErrorMsg(msg)
@@ -87,16 +89,6 @@ if !has("python") && !has("python3")
     call ErrorMsg("Vim 不支持 python")
     finish
 endif
-
-" 版本判断
-if v:version < 800
-    call ErrorMsg("请使用8.0以上版本")
-else
-    if !has('patch-8.0.1023')
-        call ErrorMsg("版本过低：patch-8.0.1023")
-    endif
-endif
-
 " }}}
 
 " 通用设置 {{{
@@ -127,11 +119,6 @@ if IsWindows()
     noremap <leader>m :call SwitchMenu()<CR>
     " 禁用菜单的alt快捷键, Windows中一般都是 alt访问菜单
     set winaltkeys=no
-
-    function! GetHvLibName()
-        let cpu_arch = has('win64') ? 'x64' : 'x86'
-        return 'hv-' . cpu_arch . '.dll'
-    endfunction
 endif
 " }}}
 
@@ -333,123 +320,10 @@ augroup END
 " }}}
 
 " 文件内容搜索 {{{
-let s:grep_tempfile = ''
-let s:grep_job_id = 0
-function! DelGrepCmdTmpFile()
-    if IsWindows()
-        if exists('s:grep_tempfile') && s:grep_tempfile != ''
-            call delete(s:grep_tempfile)
-            let s:grep_tempfile = ''
-        endif
-    endif
-endfunction
-
-function! OnGrepOutputCallback(qf_id, channel, msg)
-    let job = ch_getjob(a:channel)
-    if job_status(job) == 'fail'
-        call WarnMsg('对应的Channel没有对应的Job')
-        return
-    endif
-    if has('patch-8.0.1023')
-        let l = getqflist({'id' : a:qf_id})
-        if !has_key(l, 'id') || l.id == 0
-            call job_stop(job)
-            return
-        endif
-        call setqflist([], 'a', {'id' : a:qf_id,
-                    \ 'efm' : '%f:%\\s%#%l:%c:%m,%f:%\s%#%l:%m',
-                    \ 'lines' : [a:msg]})
-    else
-        let old_efm = &efm
-        set efm=%f:%\\s%#%l:%c:%m,%f:%\\s%#%l:%m
-        caddexpr a:msg . "\n"
-        let &efm = old_efm
-    endif
-endfunction
-
-function! OnGrepCloseCallback(qf_id, channel)
-    let job = ch_getjob(a:channel)
-    if job_status(job) == 'fail'
-        call WarnMsg('对应的Channel没有对应的Job, Close callback')
-        return
-    endif
-    let emsg = '[Search command exited with status ' . job_info(job).exitval . ']'
-    if has('patch-8.0.1023')
-        let l = getqflist({'id' : a:qf_id})
-        if has_key(l, 'id') && l.id == a:qf_id
-            call setqflist([], 'a', {'id' : a:qf_id,
-                        \ 'efm' : '%f:%\s%#%l:%m',
-                        \ 'lines' : [emsg]})
-        endif
-    else
-        caddexpr emsg
-    endif
-endfunction
-
-function! RunGrepAsync(cmd, pattern, dir)
-    if s:grep_job_id != 0
-        " 先停止运行的job
-        call job_stop(s:grep_job_id)
-    endif
-
-    let title = '[Search results for (' . a:pattern . ') in ' . a:dir . ']'
-    cexpr title . "\n"
-
-    call setqflist([], 'a', {'title' : title})
-    let l = getqflist({'id' : 0})
-    if has_key(l, 'id')
-        let qf_id = l.id
-    else
-        let qf_id = -1
-    endif
-
-    if IsWindows()
-        let cmd_list = [a:cmd]
-    else
-        let cmd_list = ['/bin/sh', '-c', a:cmd]
-    endif
-
-    " 开启job
-    let s:grep_job_id = job_start(cmd_list,
-                \ {'callback' : function('OnGrepOutputCallback', [qf_id]),
-                \ 'close_cb' : function('OnGrepCloseCallback', [qf_id]),
-                \ 'exit_cb' : function('OnGrepExitCallback', [qf_id])})
-
-    " 判断是否成功
-    if job_status(s:grep_job_id) == 'fail'
-        call WarnMsg('创建Job失败')
-        let s:grep_job_id = 0
-        call DelGrepCmdTmpFile()
-        return
-    endif
-    botright copen
-endfunction
-
-function! OnGrepExitCallback(qf_id, job, exit_status)
-    if s:grep_job_id == a:job
-        let s:grep_job_id = 0
-        call DelGrepCmdTmpFile()
-    endif
-endfunction
-
-function! RunGrep(pattern, option, dir)
-    let cmd = 'grep ' . a:option . ' ' . a:pattern . ' ' . a:dir
-    if IsWindows()
-        " windows下面处理多个引号的命令有坑。所以，先把命令保存到bat
-        " 文件中，再执行bat文件
-        let s:grep_tempfile = fnamemodify(tempname(), ':h') . '\hvgrep.cmd'
-        " 关闭回显
-        call writefile(['@echo off', cmd], s:grep_tempfile)
-        call RunGrepAsync(s:grep_tempfile, a:pattern, a:dir)
-        call DelGrepCmdTmpFile()
-    else
-        call RunGrepAsync(cmd, a:pattern, a:dir)
-    endif
-endfunction
-
 function! ExecuteGrep(str)
     if strlen(a:str) > 0
-        call RunGrep(a:str, '-ran', getcwd())
+        echom a:str
+        execute('Rg ' . a:str)
     endif
 endfunction
 
@@ -462,24 +336,16 @@ function! SearchInFiles()
     call ExecuteGrep(str)
 endfunction
 
-" 搜索输入的内容
-function! SearchInputWord()
-    let word = input("Please enter the word: ")
-    exe "norm! \<Esc><CR>"
-    call ExecuteGrep(word)
-endfunction
-
-if executable('grep')
+" 文件内容的搜索使用fzf的Rg，需要安装ripgrep程序
+if executable('rg') && isdirectory(expand(g:PLUGIN_HOME . "/fzf")) && isdirectory(expand(g:PLUGIN_HOME . "/fzf.vim"))
     vnoremap <silent><C-S> :call SearchInFiles() <CR>
     nnoremap <silent><C-S> :call SearchInFiles() <CR>
-
-    noremap <silent><M-1> :call SearchInputWord()<CR>
-    inoremap <silent><M-1> <ESC>:call SearchInputWord()<CR>
-else
-    throw 'grep executable not found'
+    " \ 输入搜索内容
+    nnoremap \ :Rg<SPACE>
 endif
 " }}}
 
+" tab---{{{
 " 终端模式下的TabLine， 参见官方文档示例
 function! CreateTerminalTabLine()
     let s = ''
@@ -684,28 +550,43 @@ noremap <leader>yd :Yde<CR>
 " }}}
 
 " FZF 插件配置 {{{
-function! OpenFloatingWin()
-  let height = &lines - 3
-  let width = float2nr(&columns - (&columns * 2 / 10))
-  let col = float2nr((&columns - width) / 2)
-
-  " 设置浮动窗口打开的位置，大小等。
-  " 这里的大小配置可能不是那么的 flexible 有继续改进的空间
+let g:file_float_window = 0
+" 主动关闭存在一些问题，fzf接收不到esc，关闭了浮动窗，但是fzf没有关闭，
+" 会导致重复打开失败, 这里还需要看看fzf有没有主动退出的方法
+"function! CloseFileFloatWin()
+"    if g:file_float_window > 0
+"        if nvim_win_is_valid(g:file_float_window)
+"            call nvim_win_close(g:file_float_window, v:true)
+"        end
+"        let g:file_float_window = 0
+"    end
+"endfunction
+function! GetFileFloatWinOpts()
+  let win_height = (&lines * 2) / 5
+  let win_width = &columns / 3
+  let row = 0
+  let col = (&columns - win_width) / 2
   let opts = {
         \ 'relative': 'editor',
-        \ 'row': height * 0.3,
-        \ 'col': col + 30,
-        \ 'width': width * 2 / 3,
-        \ 'height': height / 2
+        \ 'row': float2nr(row),
+        \ 'col': float2nr(col),
+        \ 'width': float2nr(win_width),
+        \ 'height': float2nr(win_height)
         \ }
+  return opts
+endfunction
 
-  let buf = nvim_create_buf(v:false, v:true)
-  let win = nvim_open_win(buf, v:true, opts)
-
-  " 设置浮动窗口高亮
-  call setwinvar(win, '&winhl', 'Normal:Pmenu')
-
-  setlocal
+function! OpenFileFloatWin()
+    " call CloseFileFloatWin()
+    if g:file_float_window > 0 && nvim_win_is_valid(g:file_float_window)
+        return
+    end
+    let opts = GetFileFloatWinOpts()
+    let buf = nvim_create_buf(v:false, v:true)
+    let g:file_float_window= nvim_open_win(buf, v:true, opts)
+    " 设置浮动窗口高亮
+    call setwinvar(g:file_float_window, '&winhl', 'Normal:Pmenu')
+    setlocal
         \ buftype=nofile
         \ nobuflisted
         \ bufhidden=hide
@@ -713,6 +594,39 @@ function! OpenFloatingWin()
         \ norelativenumber
         \ signcolumn=no
 endfunction
+
+function! UpdateFileFloatWin()
+    if g:file_float_window > 0 && nvim_win_is_valid(g:file_float_window)
+        let opts = GetFileFloatWinOpts()
+        call nvim_win_set_config(g:file_float_window, opts)
+    end
+endfunction
+
+if isdirectory(expand(g:PLUGIN_HOME . "/fzf"))
+    let g:fzf_action = {
+      \ 'ctrl-t': 'tab split',
+      \ 'ctrl-x': 'split',
+      \ 'ctrl-v': 'vsplit' }
+    " 让输入上方，搜索列表在下方
+    let $FZF_DEFAULT_OPTS = '--layout=reverse'
+    " 打开 fzf 的方式选择 floating window
+    let g:fzf_layout = { 'window': 'call OpenFileFloatWin()' }
+    let g:fzf_history_dir = '~/.local/share/fzf-history'
+    vnoremap <silent> <C-P> <Esc>:FZF<CR>
+    nnoremap <silent> <C-P> <Esc>:FZF<CR>
+end
+" }}}
+
+" VimResized autocmd {{{
+function! OnVimResized()
+    " 更新浮动框大小位置
+    " call UpdateFileFloatWin()
+endfunction
+augroup vim_resized
+    autocmd!
+    autocmd VimResized * call OnVimResized()
+augroup END
+" }}}
 
 " 自动补全 {{{
 if isdirectory(expand(g:PLUGIN_HOME . "/deoplete.nvim"))
@@ -753,49 +667,6 @@ if isdirectory(expand(g:PLUGIN_HOME . "/deoplete.nvim"))
     " Enable deoplete auto-completion
     call deoplete#custom#option('auto_complete', v:true)
 endif
-" }}}
-
-if isdirectory(expand(g:PLUGIN_HOME . "/fzf.vim"))
-    function! s:build_quickfix_list(lines)
-        call setqflist(map(copy(a:lines), '{ "filename": v:val }'))
-        copen
-        cc
-    endfunction
-
-    let g:fzf_action = {
-      \ 'ctrl-q': function('s:build_quickfix_list'),
-      \ 'ctrl-t': 'tab split',
-      \ 'ctrl-x': 'split',
-      \ 'ctrl-v': 'vsplit' }
-
-
-    if exists('*nvim_open_win')
-        " 让输入上方，搜索列表在下方
-        "let $FZF_DEFAULT_OPTS = '--layout=reverse'
-        " 打开 fzf 的方式选择 floating window
-        let g:fzf_layout = { 'window': 'call OpenFloatingWin()' }
-    else
-        let g:fzf_layout = { 'down': '~40%' }
-        let g:fzf_colors =
-        \ { 'fg':      ['fg', 'Normal'],
-        \ 'bg':      ['bg', 'Normal'],
-        \ 'hl':      ['fg', 'Comment'],
-        \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-        \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-        \ 'hl+':     ['fg', 'Statement'],
-        \ 'info':    ['fg', 'PreProc'],
-        \ 'border':  ['fg', 'Ignore'],
-        \ 'prompt':  ['fg', 'Conditional'],
-        \ 'pointer': ['fg', 'Exception'],
-        \ 'marker':  ['fg', 'Keyword'],
-        \ 'spinner': ['fg', 'Label'],
-        \ 'header':  ['fg', 'Comment'] }
-    end
-
-    let g:fzf_history_dir = '~/.local/share/fzf-history'
-    vnoremap <silent> <C-P> <Esc>:FZF<CR>
-    nnoremap <silent> <C-P> <Esc>:FZF<CR>
-end
 " }}}
 
 " python-mode 配置 {{{
@@ -899,7 +770,6 @@ function! CheckLuaSyntax()
         echo "ERROR: Can not find luac executable file"
         return
     endif
-    " let l:name = expand("%:p")
     let l:name = expand("%")
     if IsWindows()
         let l:error_str = call('system', ['luac -p ' . l:name])
@@ -1149,10 +1019,37 @@ map <silent> <unique> mc :call RemoveAllSigns()<CR>
 " }}}
 
 " {{{ 打开当前文件所在的文件夹，并且选中
+python << EOF
+# -*- coding: utf-8 -*-
+import vim
+import platform
+def open_file_location(file_path):
+    os_name = platform.system()
+    if os_name == 'Windows':
+        import win32api
+        win32api.ShellExecute(0, 'open', 'explorer.exe', "/select, " + file_path, '', 1)
+    elif(osName == 'Darwin'):
+        raise Exception("not support yet")
+    else:
+        raise Exception("not support yet")
+
+def open_url(url):
+    os_name = platform.system()
+    if os_name == 'Windows':
+        import win32api
+        win32api.ShellExecute(0, 'open', url, '', '', 1)
+    elif(osName == 'Darwin'):
+        raise Exception("not support yet")
+    else:
+        raise Exception("not support yet")
+EOF
+
 function! OpenCurrentFileLocation()
     let path = expand('%:p')
     if IsWindows()
-        call libcall(GetHvLibName(), 'openFileLocationInExplore', expand(path))
+        python open_file_location(vim.eval("path"))
+    else
+        echo 'not support yet on this platform'
     endif
 endfunction
 " }}}
@@ -1160,7 +1057,7 @@ endfunction
 " {{{ 打开超链接
 function! OpenUrl(url)
     if IsWindows()
-        call libcall(GetHvLibName(), 'openUrl', a:url)
+        python open_url(vim.eval("a:url"))
     endif
 endfunction
 " }}}
@@ -1168,7 +1065,7 @@ endfunction
 " {{{ 打开邮件
 function! OpenEmail(email)
     if IsWindows()
-        call libcall(GetHvLibName(), 'openUrl', a:email)
+        python open_url(vim.eval("a:email"))
     endif
 endfunction
 " }}}
@@ -1198,39 +1095,4 @@ command! Occ :call OpenCursorContent()
 vnoremap <silent> <C-O> :call OpenCursorContent() <CR>
 nnoremap <silent> <C-O> :call OpenCursorContent() <CR>
 inoremap <silent> <C-O> :call OpenCursorContent() <CR>
-" }}}
-
-" {{{ 测试代码
-"function! HvTest()
-"    function! Callback(channel, msg)
-"        echom 'callback -------- ' . a:msg . '\n'
-"    endfunction
-"
-"    function! CloseCallback(channel)
-"    endfunction
-"
-"    function! OutCallback(channel, msg)
-"        echom 'outcallback -------- ' . a:msg . '\n'
-"    endfunction
-"
-"    function! ErrCallback(channel, msg)
-"        echom 'errcallback -------- ' . a:msg . '\n'
-"    endfunction
-"
-"    function! ExitCallback(job, exit_status)
-"    endfunction
-"
-"    let cmd = 'hv'
-"    let s:hv_tempfile = fnamemodify(tempname(), ':h') . '\hvtmp.cmd'
-"    call writefile(['@echo off', cmd], s:hv_tempfile)
-"    let cmd_list = [cmd]
-"    let s:hv_job_id = job_start(cmd_list,
-"                \ {'callback' : function('Callback'),
-"                \ 'close_cb' : function('CloseCallback'),
-"                \ 'out_cb' : function('OutCallback'),
-"                \ 'err_cb' : function('ErrCallback'),
-"                \ 'exit_cb' : function('ExitCallback')})
-"    call delete(s:hv_tempfile)
-"endfunction
-"map <leader>t :call HvTest()<CR>
 " }}}
