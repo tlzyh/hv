@@ -142,8 +142,10 @@ endif
 " 设置 vim-plug {{{
 
 if IsWindows()
+    let g:VimHome = expand('~/AppData/Local/nvim')
     let g:PLUGIN_HOME = expand('~/AppData/Local/nvim/plugged')
 else
+    let g:VimHome =expand('~/.config/nvim')
     let g:PLUGIN_HOME=expand('~/.config/nvim/plugged')
 endif
 
@@ -261,6 +263,7 @@ set nojoinspaces
 set splitright
 set splitbelow
 set pastetoggle=<F12>
+set title
 
 " 关闭响铃
 if IsGui()
@@ -294,10 +297,36 @@ endif
 
 " vimrc编辑 {{{
 function! EditGuiInitVim()
+    if exists('g:GuiLoaded')
+        let gvimrc = expand(g:PLUGIN_HOME . "/ginit.vim")
+        if filereadable(gvimrc)
+            tabnew gvimrc
+        endif
+    endif
 endfunction
-"noremap <leader>m :call SwitchMenu()<CR>
-nnoremap <leader>ev :tabnew $MYVIMRC<cr>
-nnoremap <leader>sv :source $MYVIMRC<cr>
+
+function! EditInitVim()
+    let vimrc = expand($MYVIMRC)
+    if filereadable(vimrc)
+        tabnew vimrc
+    endif
+endfunction
+
+function! SourceVimrc()
+    let vimrc = expand($MYVIMRC)
+    if filereadable(vimrc)
+        execute("source " . vimrc)
+    endif
+    if exists('g:GuiLoaded')
+        let gvimrc = expand(g:PLUGIN_HOME . "/ginit.vim")
+        if filereadable(gvimrc)
+            execute("source " . gvimrc)
+        endif
+    endif
+endfunction
+nnoremap <leader>ev :call EditInitVim()<cr>
+nnoremap <leader>egv :call EditGuiInitVim()<cr>
+nnoremap <leader>sv :call SourceVimrc()<cr>
 " }}}
 
 " quickfix 配置 {{{
@@ -343,9 +372,14 @@ if executable('rg') && isdirectory(expand(g:PLUGIN_HOME . "/fzf")) && isdirector
     " \ 输入搜索内容
     nnoremap \ :Rg<SPACE>
 endif
+
+"if executable('rg') && isdirectory(expand(g:PLUGIN_HOME . "/FlyGrep.vim"))
+"    nnoremap \ :FlyGrep<cr>
+"endif
+
 " }}}
 
-" tab---{{{
+" tab {{{
 " 终端模式下的TabLine， 参见官方文档示例
 function! CreateTerminalTabLine()
     let s = ''
@@ -562,18 +596,18 @@ let g:file_float_window = 0
 "    end
 "endfunction
 function! GetFileFloatWinOpts()
-  let win_height = (&lines * 2) / 5
-  let win_width = &columns / 3
-  let row = 0
-  let col = (&columns - win_width) / 2
-  let opts = {
+    let win_height = (&lines * 2) / 5
+    let win_width = (&columns * 2) / 5
+    let row = 0
+    let col = (&columns - win_width) / 2
+    let opts = {
         \ 'relative': 'editor',
         \ 'row': float2nr(row),
         \ 'col': float2nr(col),
         \ 'width': float2nr(win_width),
         \ 'height': float2nr(win_height)
         \ }
-  return opts
+    return opts
 endfunction
 
 function! OpenFileFloatWin()
@@ -607,10 +641,20 @@ if isdirectory(expand(g:PLUGIN_HOME . "/fzf"))
       \ 'ctrl-t': 'tab split',
       \ 'ctrl-x': 'split',
       \ 'ctrl-v': 'vsplit' }
-    " 让输入上方，搜索列表在下方
-    let $FZF_DEFAULT_OPTS = '--layout=reverse'
-    " 打开 fzf 的方式选择 floating window
-    let g:fzf_layout = { 'window': 'call OpenFileFloatWin()' }
+    let s_float_win = 0
+    if s_float_win
+        " 让输入上方，搜索列表在下方
+        let $FZF_DEFAULT_OPTS = '--layout=reverse'
+        " 打开 fzf 的方式选择 floating window
+        let g:fzf_layout = { 'window': 'call OpenFileFloatWin()' }
+    else
+        " - down / up / left / right
+        let g:fzf_layout = { 'down': '~40%' }
+
+        "let g:fzf_layout = { 'window': 'enew' }
+        "let g:fzf_layout = { 'window': '-tabnew' }
+        "let g:fzf_layout = { 'window': '10new' }
+    endif
     let g:fzf_history_dir = '~/.local/share/fzf-history'
     vnoremap <silent> <C-P> <Esc>:FZF<CR>
     nnoremap <silent> <C-P> <Esc>:FZF<CR>
@@ -718,7 +762,7 @@ function! InitializeDirectories()
     if IsWindows()
         let dir = expand('~/AppData/Local/nvim')
     else
-        let dir =expand('~/.config/nvim')
+        let dir = expand('~/.config/nvim')
     endif
 
     let parent = dir . '/.vimtmpdir/'
@@ -1012,10 +1056,10 @@ function! GotoPrevSign()
 endfunction
 
 " 命令映射
-map <silent> <unique> mm :call ToggleSign()<CR>
-map <silent> <unique> mn :call GotoNextSign()<CR>
-map <silent> <unique> mp :call GotoPrevSign()<CR>
-map <silent> <unique> mc :call RemoveAllSigns()<CR>
+noremap <silent> mm :call ToggleSign()<CR>
+noremap <silent> mn :call GotoNextSign()<CR>
+noremap <silent> mp :call GotoPrevSign()<CR>
+noremap <silent> mc :call RemoveAllSigns()<CR>
 " }}}
 
 " {{{ 打开当前文件所在的文件夹，并且选中
@@ -1096,3 +1140,5 @@ vnoremap <silent> <C-O> :call OpenCursorContent() <CR>
 nnoremap <silent> <C-O> :call OpenCursorContent() <CR>
 inoremap <silent> <C-O> :call OpenCursorContent() <CR>
 " }}}
+let g:buffergator_use_new_keymap=1
+let g:buffergator_autodismiss_on_select=0

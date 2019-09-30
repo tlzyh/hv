@@ -10,7 +10,7 @@ if exists('g:GuiLoaded')
     GuiPopupmenu 0
     GuiTabline 0
     GuiLinespace 0
-    Guifont! Courier\ New:h12
+    Guifont! Courier\ New:h11
     call GuiWindowMaximized(1)
 endif
 " }}}
